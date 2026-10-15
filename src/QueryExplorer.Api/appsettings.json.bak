@@ -1,0 +1,22 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Cors": {
+    "AllowedOrigins": [ "http://localhost:5173" ]
+  },
+  "Encryption": {
+    "_comment": "Encrypts connection passwords in connections.json. MUST be at least 32 chars. Change this before deploying, keep it out of source control, and note that changing it makes existing stored passwords unreadable (they must be re-entered).",
+    "Key": "bd80076c3ad852370db6dcd4e3a9d863e86322c3316cb8e6bbe63769e220bb51"
+  },
+  "Jwt": {
+    "Key": "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_BEFORE_DEPLOYING_ANYWHERE",
+    "Issuer": "QueryExplorer",
+    "Audience": "QueryExplorer",
+    "ExpiryMinutes": 480
+  }
+}

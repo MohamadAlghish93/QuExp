@@ -1,0 +1,9 @@
+bin/
+obj/
+node_modules/
+dist/
+*.user
+.vs/
+data/favorites.json
+data/users.db
+src/QueryExplorer.Api/wwwroot/

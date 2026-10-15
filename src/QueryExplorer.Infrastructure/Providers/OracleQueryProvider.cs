@@ -1,0 +1,178 @@
+using System.Data;
+using Oracle.ManagedDataAccess.Client;
+using QueryExplorer.Application.Interfaces;
+using QueryExplorer.Application.Validation;
+using QueryExplorer.Domain.Enums;
+
+namespace QueryExplorer.Infrastructure.Providers;
+
+public class OracleQueryProvider : Application.Interfaces.IQueryProvider
+{
+    public DatabaseProviderType ProviderType => DatabaseProviderType.Oracle;
+
+    public string BuildConnectionString(
+        string host, int port, string database, string username, string password, string? extraOptions)
+    {
+        // OracleConnectionStringBuilder escapes values correctly, so a password
+        // containing ; or " can't break out and inject extra keywords.
+        var builder = new OracleConnectionStringBuilder
+        {
+            DataSource = $"{host}:{(port > 0 ? port : 1521)}/{database}",
+            UserID = username,
+            Password = password,
+            ConnectionTimeout = 15
+        };
+
+        var connectionString = builder.ConnectionString;
+        if (!string.IsNullOrWhiteSpace(extraOptions))
+            connectionString += ";" + extraOptions.Trim().TrimStart(';');
+        return connectionString;
+    }
+
+    public async Task<(bool Ok, string? Error)> TestConnectionAsync(string connectionString, CancellationToken ct)
+    {
+        try
+        {
+            await using var conn = new OracleConnection(connectionString);
+            await conn.OpenAsync(ct);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    // Oracle 12c+ supports the same OFFSET/FETCH syntax as SQL Server.
+    public string ApplyPaging(string rawSelectSql, int skip, int take)
+    {
+        var trimmed = rawSelectSql.Trim().TrimEnd(';');
+        return $"SELECT * FROM ({trimmed}) base_query " +
+               $"OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY";
+    }
+
+    // {{name}} placeholders become :name and are bound as real parameters -
+    // values never get concatenated into the SQL text.
+    private static string RenderSql(string sql) => QueryParameterHelper.RenderForProvider(sql, ":");
+
+    private static void BindParameters(OracleCommand cmd, IReadOnlyDictionary<string, object?> parameters)
+    {
+        foreach (var (name, value) in parameters)
+            cmd.Parameters.Add(new OracleParameter(name, value ?? DBNull.Value));
+    }
+
+    public async Task<(List<string> Columns, List<Dictionary<string, object?>> Rows)> ExecutePageAsync(
+        string connectionString, string sql, int skip, int take,
+        IReadOnlyDictionary<string, object?> parameters, CancellationToken ct)
+    {
+        var pagedSql = ApplyPaging(RenderSql(sql), skip, take);
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync(ct);
+        await using var cmd = new OracleCommand(pagedSql, conn) { CommandTimeout = 60 };
+        BindParameters(cmd, parameters);
+        await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, ct);
+
+        var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
+        var rows = new List<Dictionary<string, object?>>();
+
+        while (await reader.ReadAsync(ct))
+        {
+            var row = new Dictionary<string, object?>();
+            for (int i = 0; i < reader.FieldCount; i++)
+                row[columns[i]] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            rows.Add(row);
+        }
+
+        return (columns, rows);
+    }
+
+    public async Task<long> ExecuteCountAsync(
+        string connectionString, string sql, IReadOnlyDictionary<string, object?> parameters, CancellationToken ct)
+    {
+        var trimmed = RenderSql(sql).Trim().TrimEnd(';');
+        var countSql = $"SELECT COUNT(*) FROM ({trimmed}) count_query";
+
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync(ct);
+        await using var cmd = new OracleCommand(countSql, conn) { CommandTimeout = 60 };
+        BindParameters(cmd, parameters);
+        var result = await cmd.ExecuteScalarAsync(ct);
+        return Convert.ToInt64(result);
+    }
+
+    public async Task<long?> TryGetEstimatedRowCountAsync(
+        string connectionString, string sql, IReadOnlyDictionary<string, object?> parameters, CancellationToken ct)
+    {
+        try
+        {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+            var trimmed = RenderSql(sql).Trim().TrimEnd(';');
+            var countSql = $"SELECT COUNT(*) FROM ({trimmed}) count_query";
+
+            await using var conn = new OracleConnection(connectionString);
+            await conn.OpenAsync(timeoutCts.Token);
+            await using var cmd = new OracleCommand(countSql, conn) { CommandTimeout = 5 };
+            BindParameters(cmd, parameters);
+            var result = await cmd.ExecuteScalarAsync(timeoutCts.Token);
+            return Convert.ToInt64(result);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<List<(string? Value, long Count)>> ExecuteGroupByAsync(
+        string connectionString, string sql, string column, int top,
+        IReadOnlyDictionary<string, object?> parameters, CancellationToken ct)
+    {
+        // column is validated as a plain identifier by the caller; double-quote it here.
+        // Column names can't be bound as parameters - they're part of the SQL structure.
+        var quotedColumn = $"\"{column.Replace("\"", "\"\"").ToUpperInvariant()}\"";
+        var inner = RenderSql(sql).Trim().TrimEnd(';');
+
+        // FETCH FIRST applies after ORDER BY at the same level, so no derived-table wrapper needed.
+        var groupSql =
+            $"SELECT {quotedColumn} AS group_value, COUNT(*) AS group_count " +
+            $"FROM ({inner}) grouped_query " +
+            $"GROUP BY {quotedColumn} ORDER BY COUNT(*) DESC " +
+            $"FETCH FIRST {top} ROWS ONLY";
+
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync(ct);
+        await using var cmd = new OracleCommand(groupSql, conn) { CommandTimeout = 120 };
+        BindParameters(cmd, parameters);
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+
+        var results = new List<(string?, long)>();
+        while (await reader.ReadAsync(ct))
+        {
+            var value = reader.IsDBNull(0) ? null : reader.GetValue(0)?.ToString();
+            results.Add((value, Convert.ToInt64(reader.GetValue(1))));
+        }
+        return results;
+    }
+
+    public async IAsyncEnumerable<Dictionary<string, object?>> StreamAllAsync(
+        string connectionString, string sql, IReadOnlyDictionary<string, object?> parameters,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
+    {
+        var trimmed = RenderSql(sql).Trim().TrimEnd(';');
+        await using var conn = new OracleConnection(connectionString);
+        await conn.OpenAsync(ct);
+        await using var cmd = new OracleCommand(trimmed, conn) { CommandTimeout = 0 };
+        BindParameters(cmd, parameters);
+        await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, ct);
+
+        var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
+        while (await reader.ReadAsync(ct))
+        {
+            var row = new Dictionary<string, object?>();
+            for (int i = 0; i < reader.FieldCount; i++)
+                row[columns[i]] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            yield return row;
+        }
+    }
+}

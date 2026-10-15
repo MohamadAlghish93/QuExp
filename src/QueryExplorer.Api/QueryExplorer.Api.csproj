@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <!--<InvariantGlobalization>true</InvariantGlobalization>
+	-->
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QueryExplorer.Application\QueryExplorer.Application.csproj" />
+    <ProjectReference Include="..\QueryExplorer.Infrastructure\QueryExplorer.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PdfSharpCore" Version="1.3.67" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+    <PackageReference Include="WebPush" Version="1.0.13" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assests\" />
+  </ItemGroup>
+
+  <!--
+    Builds the React client and drops its output into wwwroot so a single
+    `dotnet run` (or `dotnet publish`) serves both the API and the UI on one
+    port. Skips the npm build if wwwroot/index.html already exists, so day-to-day
+    `dotnet run` stays fast - delete wwwroot (or run `npm run build` in client/
+    yourself) to force a rebuild after frontend changes.
+  -->
+  <Target Name="BuildClient" BeforeTargets="Build" Condition="!Exists('$(MSBuildThisFileDirectory)wwwroot\index.html')">
+    <Exec Command="npm install" WorkingDirectory="$(MSBuildThisFileDirectory)..\..\client" Condition="!Exists('$(MSBuildThisFileDirectory)..\..\client\node_modules')" />
+    <Exec Command="npm run build" WorkingDirectory="$(MSBuildThisFileDirectory)..\..\client" />
+    <ItemGroup>
+      <ClientDistFiles Include="$(MSBuildThisFileDirectory)..\..\client\dist\**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ClientDistFiles)" DestinationFolder="$(MSBuildThisFileDirectory)wwwroot\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

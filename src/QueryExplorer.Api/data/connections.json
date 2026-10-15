@@ -1,0 +1,28 @@
+[
+  {
+    "Id": "95e49ffb-f567-4ba1-abf7-e242c8957fb1",
+    "Name": "SQL",
+    "ProviderType": "SqlServer",
+    "Host": "192.168.1.17",
+    "Port": 1433,
+    "Database": "TarasolP16",
+    "Username": "sa",
+    "EncryptedPassword": "Hd1ii/XwegVEJoMrMdJWrNmYoxcEIIFi3VSGkgZjDytoy/evVTbmbsqSprrO3geocRggDRCF\u002B11K\u002BFPk3YA2RA==",
+    "ExtraOptions": "TrustServerCertificate=True;",
+    "AllowedUsernames": [],
+    "CreatedAtUtc": "2026-09-20T10:18:10.6697378Z"
+  },
+  {
+    "Id": "701326f6-f8c7-4788-89af-00e235c357fd",
+    "Name": "Oracle",
+    "ProviderType": "Oracle",
+    "Host": "192.168.1.43",
+    "Port": 1521,
+    "Database": "ORCLPDB2",
+    "Username": "Tars24",
+    "EncryptedPassword": "o0KXH4jtNfIepJeE44oUbdLxih6VZEBybgaHxgi6KMxoamt/kGtFoDTO98cgd3VRbax\u002B73I3HKoczlG5oy/djQ==",
+    "ExtraOptions": "",
+    "AllowedUsernames": [],
+    "CreatedAtUtc": "2026-09-20T10:18:34.4598079Z"
+  }
+]

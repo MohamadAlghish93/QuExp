@@ -1,0 +1,69 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using QueryExplorer.Application.DTOs;
+using QueryExplorer.Application.Interfaces;
+using QueryExplorer.Application.Security;
+using QueryExplorer.Domain.Entities;
+
+namespace QueryExplorer.Api.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public class AuthController : ControllerBase
+{
+    private readonly IUserRepository _users;
+    private readonly IJwtTokenService _jwt;
+
+    public AuthController(IUserRepository users, IJwtTokenService jwt)
+    {
+        _users = users;
+        _jwt = jwt;
+    }
+
+    /// <summary>Public login endpoint. A default admin/Admin123! account is seeded on first run.</summary>
+    /// Creating additional users is done from the Users page (Admin role required), not here.</summary>
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { error = "Username and password are required." });
+
+        var user = await _users.GetByUsernameAsync(request.Username.Trim());
+        if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
+            return Unauthorized(new { error = "Invalid username or password." });
+
+        var (token, expiresAtUtc) = _jwt.GenerateToken(user);
+
+        return Ok(new LoginResponse
+        {
+            Token = token,
+            Username = user.Username,
+            Role = user.Role.ToString(),
+            ExpiresAtUtc = expiresAtUtc
+        });
+    }
+
+    /// <summary>Requires an existing logged-in user, so account creation can't be done by an anonymous caller.</summary>
+    [HttpPost("register")]
+    [Authorize]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || request.Password.Length < 8)
+            return BadRequest(new { error = "Username is required and password must be at least 8 characters." });
+
+        var existing = await _users.GetByUsernameAsync(request.Username.Trim());
+        if (existing is not null)
+            return Conflict(new { error = "That username is already taken." });
+
+        var (hash, salt) = PasswordHasher.Hash(request.Password);
+        var user = await _users.CreateAsync(new User
+        {
+            Username = request.Username.Trim(),
+            PasswordHash = hash,
+            PasswordSalt = salt
+        });
+
+        return Ok(new { user.Id, user.Username });
+    }
+}
