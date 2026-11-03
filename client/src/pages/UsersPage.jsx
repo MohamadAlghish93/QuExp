@@ -1,3 +1,6 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -144,37 +147,37 @@ export default function UsersPage() {
           <h3>New user</h3>
           <label>
             Username
-            <input value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} required />
+            <CloudscapeInput value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} required />
           </label>
           <label>
             Password
-            <input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            <CloudscapeInput type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                    required minLength={8} autoComplete="new-password" />
           </label>
           <label>
             Role
-            <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}>
+            <CloudscapeSelect value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}>
               <option value="Viewer">Viewer</option>
               <option value="Editor">Editor</option>
               <option value="Admin">Admin</option>
-            </select>
+            </CloudscapeSelect>
           </label>
           <p className="field-hint hint-existing">{ROLE_DESCRIPTIONS[form.role]}</p>
 
           <label>
             Display name (optional)
-            <input value={form.displayName} onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))} />
+            <CloudscapeInput value={form.displayName} onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))} />
           </label>
           <label>
             Email (optional)
-            <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            <CloudscapeInput type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
           </label>
           <div className="field-block">
             <span className="field-block-label">Groups (optional)</span>
             <GroupsInput value={form.groups} onChange={(g) => setForm((f) => ({ ...f, groups: g }))} suggestions={groups} />
           </div>
 
-          <button type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create user'}</button>
+          <CloudscapeButton type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create user'}</CloudscapeButton>
         </form>
 
         <div className="users-list-layout">
@@ -182,17 +185,17 @@ export default function UsersPage() {
             <h4>Groups</h4>
             <ul>
               <li>
-                <button className={selectedGroup === '' ? 'category-item active' : 'category-item'} onClick={() => setSelectedGroup('')}>
+                <CloudscapeButton className={selectedGroup === '' ? 'category-item active' : 'category-item'} onClick={() => setSelectedGroup('')}>
                   <span>All users</span>
                   <span className="count-badge">{users.length}</span>
-                </button>
+                </CloudscapeButton>
               </li>
               {Object.keys(usersByGroup).sort().map((group) => (
                 <li key={group}>
-                  <button className={selectedGroup === group ? 'category-item active' : 'category-item'} onClick={() => setSelectedGroup(group)}>
+                  <CloudscapeButton className={selectedGroup === group ? 'category-item active' : 'category-item'} onClick={() => setSelectedGroup(group)}>
                     <span title={group}>{group}</span>
                     <span className="count-badge">{usersByGroup[group].length}</span>
-                  </button>
+                  </CloudscapeButton>
                 </li>
               ))}
             </ul>
@@ -214,48 +217,48 @@ export default function UsersPage() {
                   <p className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</p>
 
                   <div className="form-row" style={{ marginTop: 8 }}>
-                    <select value={u.role} onChange={(e) => handleRoleChange(u.username, e.target.value)}
+                    <CloudscapeSelect value={u.role} onChange={(e) => handleRoleChange(u.username, e.target.value)}
                             disabled={u.username === myUsername}>
                       <option value="Viewer">Viewer</option>
                       <option value="Editor">Editor</option>
                       <option value="Admin">Admin</option>
-                    </select>
-                    <button className="secondary" onClick={() => startEdit(u)}>Edit profile</button>
-                    <button className="secondary" onClick={() => startPasswordEdit(u.username)}>Change password</button>
-                    <button className="secondary danger" onClick={() => handleDelete(u.username)}
+                    </CloudscapeSelect>
+                    <CloudscapeButton className="secondary" onClick={() => startEdit(u)}>Edit profile</CloudscapeButton>
+                    <CloudscapeButton className="secondary" onClick={() => startPasswordEdit(u.username)}>Change password</CloudscapeButton>
+                    <CloudscapeButton className="secondary danger" onClick={() => handleDelete(u.username)}
                             disabled={u.username === myUsername}>
                       Delete
-                    </button>
+                    </CloudscapeButton>
                   </div>
 
                   {editingUsername === u.username && (
                     <div className="edit-profile-panel">
                       <label>
                         Display name
-                        <input value={editForm.displayName} onChange={(e) => setEditForm((f) => ({ ...f, displayName: e.target.value }))} />
+                        <CloudscapeInput value={editForm.displayName} onChange={(e) => setEditForm((f) => ({ ...f, displayName: e.target.value }))} />
                       </label>
                       <label>
                         Email
-                        <input type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
+                        <CloudscapeInput type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
                       </label>
                       <div className="field-block">
                         <span className="field-block-label">Groups</span>
                         <GroupsInput value={editForm.groups} onChange={(g) => setEditForm((f) => ({ ...f, groups: g }))} suggestions={groups} />
                       </div>
                       <div className="modal-actions">
-                        <button type="button" className="secondary" onClick={() => setEditingUsername(null)}>Cancel</button>
-                        <button type="button" onClick={() => handleSaveEdit(u.username)}>Save</button>
+                        <CloudscapeButton type="button" className="secondary" onClick={() => setEditingUsername(null)}>Cancel</CloudscapeButton>
+                        <CloudscapeButton type="button" onClick={() => handleSaveEdit(u.username)}>Save</CloudscapeButton>
                       </div>
                     </div>
                   )}
 
                   {passwordEditUsername === u.username && (
                     <div className="form-row" style={{ marginTop: 8 }}>
-                      <input type="password" className="grow" placeholder="New password (min 8 chars)"
+                      <CloudscapeInput type="password" className="grow" placeholder="New password (min 8 chars)"
                              value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                              autoComplete="new-password" />
-                      <button className="secondary" onClick={() => handlePasswordSave(u.username)}>Save</button>
-                      <button className="secondary" onClick={() => setPasswordEditUsername(null)}>Cancel</button>
+                      <CloudscapeButton className="secondary" onClick={() => handlePasswordSave(u.username)}>Save</CloudscapeButton>
+                      <CloudscapeButton className="secondary" onClick={() => setPasswordEditUsername(null)}>Cancel</CloudscapeButton>
                     </div>
                   )}
                   {passwordEditUsername === u.username && passwordMessage && (

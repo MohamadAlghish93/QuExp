@@ -1,4 +1,8 @@
+import CloudscapeSelect from './CloudscapeSelect.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
+import CloudscapeInput from './CloudscapeInput.jsx'
 import { useEffect, useState } from 'react'
+import Table from '@cloudscape-design/components/table'
 import { getLegend, setLegendEntry } from '../utils/valueLegend.js'
 
 // Runs GROUP BY + COUNT(*) server-side across the WHOLE result set, not just the
@@ -31,18 +35,18 @@ export default function GroupByPanel({ columns, onGroupBy, result, loading, erro
       <div className="toolbar">
         <label className="inline-label">
           Group by column
-          <select value={column} onChange={(e) => setColumn(e.target.value)}>
+          <CloudscapeSelect value={column} onChange={(e) => setColumn(e.target.value)}>
             <option value="">Select a column…</option>
             {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+          </CloudscapeSelect>
         </label>
-        <button onClick={() => onGroupBy(column)} disabled={!column || loading}>
+        <CloudscapeButton onClick={() => onGroupBy(column)} disabled={!column || loading}>
           {loading ? 'Counting…' : 'Count rows per value'}
-        </button>
+        </CloudscapeButton>
         {result && onPin && (
-          <button className="secondary" onClick={() => onPin(result.column)} disabled={pinning}>
+          <CloudscapeButton className="secondary" onClick={() => onPin(result.column)} disabled={pinning}>
             {pinning ? 'Pinning…' : '📌 Pin to dashboard'}
-          </button>
+          </CloudscapeButton>
         )}
       </div>
 
@@ -60,31 +64,30 @@ export default function GroupByPanel({ columns, onGroupBy, result, loading, erro
             If this column holds coded values (e.g. status 1, 2, 3), type what each one means
             in the "Meaning" column below — saved in your browser for next time.
           </p>
-          <table className="result-grid groupby-table">
-            <thead>
-              <tr>
-                <th>{result.column}</th>
-                <th>Meaning</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.groups.map((g, i) => (
-                <tr key={i}>
-                  <td>{g.value === null ? <span className="null-cell">NULL</span> : g.value}</td>
-                  <td>
-                    <input
-                      className="legend-input"
-                      value={legend[String(g.value)] || ''}
-                      onChange={(e) => handleMeaningChange(g.value, e.target.value)}
-                      placeholder="e.g. Pending"
-                    />
-                  </td>
-                  <td>{g.count.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            variant="embedded"
+            items={result.groups}
+            columnDefinitions={[
+              {
+                id: 'value',
+                header: result.column,
+                cell: (group) => group.value === null ? <span className="null-cell">NULL</span> : String(group.value),
+              },
+              {
+                id: 'meaning',
+                header: 'Meaning',
+                cell: (group) => (
+                  <CloudscapeInput
+                    className="legend-input"
+                    value={legend[String(group.value)] || ''}
+                    onChange={(e) => handleMeaningChange(group.value, e.target.value)}
+                    placeholder="e.g. Pending"
+                  />
+                ),
+              },
+              { id: 'count', header: 'Count', cell: (group) => group.count.toLocaleString() },
+            ]}
+          />
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useState } from 'react'
 
 // Classic dual-listbox "transfer list": pick items on either side, move them
@@ -39,10 +40,10 @@ export default function ScreenTransferList({ allScreens, assignedKeys, onChange 
       </div>
 
       <div className="transfer-controls">
-        <button type="button" onClick={() => moveToAssigned(selectedAvailable)} disabled={!selectedAvailable.length} title="Add selected">→</button>
-        <button type="button" onClick={() => moveToAssigned(available.map((s) => s.key))} disabled={!available.length} title="Add all">≫</button>
-        <button type="button" onClick={() => moveToAvailable(assigned.map((s) => s.key))} disabled={!assigned.length} title="Remove all">≪</button>
-        <button type="button" onClick={() => moveToAvailable(selectedAssigned)} disabled={!selectedAssigned.length} title="Remove selected">←</button>
+        <CloudscapeButton type="button" onClick={() => moveToAssigned(selectedAvailable)} disabled={!selectedAvailable.length} title="Add selected">→</CloudscapeButton>
+        <CloudscapeButton type="button" onClick={() => moveToAssigned(available.map((s) => s.key))} disabled={!available.length} title="Add all">≫</CloudscapeButton>
+        <CloudscapeButton type="button" onClick={() => moveToAvailable(assigned.map((s) => s.key))} disabled={!assigned.length} title="Remove all">≪</CloudscapeButton>
+        <CloudscapeButton type="button" onClick={() => moveToAvailable(selectedAssigned)} disabled={!selectedAssigned.length} title="Remove selected">←</CloudscapeButton>
       </div>
 
       <div className="transfer-column">

@@ -1,6 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import AppLayout from '@cloudscape-design/components/app-layout'
+import TopNavigation from '@cloudscape-design/components/top-navigation'
 import { AuthProvider, useAuth } from './auth/AuthContext.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
@@ -26,50 +29,46 @@ import PdfLayoutDesignerPage from './pages/PdfLayoutDesignerPage.jsx'
 import HiddenItemsPage from './pages/HiddenItemsPage.jsx'
 import WorkflowPage from './pages/WorkflowPage.jsx'
 import WorkflowDesignerPage from './pages/WorkflowDesignerPage.jsx'
+import '@cloudscape-design/global-styles/index.css'
 import './styles.css'
 
-// Top bar shows only what's pinned (chosen from the sidebar's ☆/★ toggle) -
-// the sidebar itself always has the full list, so nothing becomes unreachable
-// by unpinning it.
 function Header({ pinnedKeys }) {
   const { isAuthenticated, username, role, isAdmin, canSeeScreen, logout } = useAuth()
+  const navigate = useNavigate()
   if (!isAuthenticated) return null
 
-  const initials = username ? username.slice(0, 2).toUpperCase() : '?'
-  const allItems = [...NAV_CATALOG, ...(isAdmin ? ADMIN_NAV_CATALOG : [])]
-  const topItems = allItems.filter((item) => pinnedKeys.includes(item.key) && canSeeScreen(item.key))
+  const pinnedItems = [...NAV_CATALOG, ...(isAdmin ? ADMIN_NAV_CATALOG : [])]
+    .filter((item) => pinnedKeys.includes(item.key) && canSeeScreen(item.key))
 
   return (
-    <header className="app-header">
-      <div className="app-brand">
-        <span className="app-brand-mark">Q</span>
-        <span className="app-brand-name">Query Explorer</span>
-      </div>
-
-      <nav>
-        {topItems.map((item) => (
-          <NavLink key={item.key} to={item.to} end={item.end}
-                   className={({ isActive }) => (isActive ? 'active' : '')}>
-            {item.label}
-          </NavLink>
-        ))}
-        {topItems.length === 0 && (
-          <span className="muted nav-empty-hint">Pin pages here from the ☆ in the sidebar →</span>
-        )}
-      </nav>
-
-      <div className="app-header-right">
+    <header className="app-header" id="header">
+      <TopNavigation
+        identity={{ title: 'Query Explorer', href: '/' }}
+        utilities={[
+          ...pinnedItems.map((item) => ({
+            type: 'button',
+            text: item.label,
+            href: item.to,
+            onFollow: (event) => {
+              event.preventDefault()
+              navigate(item.to)
+            },
+          })),
+          {
+            type: 'menu-dropdown',
+            text: username,
+            description: role,
+            iconName: 'user-profile',
+            ariaLabel: `Account: ${username}, ${role}`,
+            items: [{ id: 'signout', text: 'Sign out' }],
+            onItemClick: (event) => {
+              if (event.detail.id === 'signout') logout()
+            },
+          },
+        ]}
+      />
+      <div className="app-header-notifications">
         <NotificationBell />
-        <div className="user-chip">
-          <span className="user-avatar">{initials}</span>
-          <span className="user-chip-info">
-            <span className="user-chip-name">{username}</span>
-            <span className={`role-badge role-badge-${role.toLowerCase()}`}>{role}</span>
-          </span>
-        </div>
-        <button className="icon-button logout-button" onClick={logout} title="Log out" aria-label="Log out">
-          ⏻
-        </button>
       </div>
     </header>
   )
@@ -85,13 +84,37 @@ function AppContent() {
   const { pinnedKeys, togglePinned } = usePinnedNav()
   const location = useLocation()
   const isQueryRoute = location.pathname === '/query'
+  const [navigationOpen, setNavigationOpen] = useState(() => localStorage.getItem('qe_sidebar_collapsed') !== '1')
 
   return (
-    <div className="app-layout">
-      <Sidebar pinnedKeys={pinnedKeys} onTogglePin={togglePinned} />
-      <div className="app-shell">
-        <Header pinnedKeys={pinnedKeys} />
-        <main>
+    <>
+      <Header pinnedKeys={pinnedKeys} />
+      <AppLayout
+        headerSelector="#header"
+        navigation={isAuthenticated && (
+          <Sidebar
+            pinnedKeys={pinnedKeys}
+            onTogglePin={togglePinned}
+            collapsed={!navigationOpen}
+          />
+        )}
+        navigationHide={!isAuthenticated}
+        navigationOpen={navigationOpen}
+        navigationCloseBehavior="collapse"
+        navigationCollapsedWidth={56}
+        onNavigationChange={({ detail }) => {
+          setNavigationOpen(detail.open)
+          localStorage.setItem('qe_sidebar_collapsed', detail.open ? '0' : '1')
+        }}
+        ariaLabels={{
+          navigation: 'Main navigation',
+          navigationToggle: 'Open navigation',
+          navigationClose: 'Close navigation',
+          notification: 'Notifications',
+        }}
+        maxContentWidth={Number.MAX_VALUE}
+        content={
+          <main className="app-content">
           {isAuthenticated && (
             <div style={{ display: isQueryRoute ? 'block' : 'none' }}>
               <QueryWorkspace />
@@ -125,9 +148,10 @@ function AppContent() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           )}
-        </main>
-      </div>
-    </div>
+          </main>
+        }
+      />
+    </>
   )
 }
 

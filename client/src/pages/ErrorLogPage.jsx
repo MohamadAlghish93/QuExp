@@ -1,3 +1,6 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client.js'
 
@@ -45,8 +48,8 @@ export default function ErrorLogPage() {
       <div className="dashboard-header">
         <h2>Error log</h2>
         <div className="toolbar" style={{ margin: 0 }}>
-          <button className="secondary" onClick={load} disabled={loading}>{loading ? 'Loading…' : '↻ Refresh'}</button>
-          {entries.length > 0 && <button className="secondary danger" onClick={handleClear}>Clear log</button>}
+          <CloudscapeButton className="secondary" onClick={load} disabled={loading}>{loading ? 'Loading…' : '↻ Refresh'}</CloudscapeButton>
+          {entries.length > 0 && <CloudscapeButton className="secondary danger" onClick={handleClear}>Clear log</CloudscapeButton>}
         </div>
       </div>
       <p className="muted">
@@ -57,12 +60,12 @@ export default function ErrorLogPage() {
       {error && <div className="error-banner">{error}</div>}
 
       <div className="toolbar">
-        <select value={source} onChange={(e) => setSource(e.target.value)}>
+        <CloudscapeSelect value={source} onChange={(e) => setSource(e.target.value)}>
           <option value="">All sources</option>
           <option value="Client">Client (what users saw)</option>
           <option value="Server">Server (unhandled exceptions)</option>
-        </select>
-        <input placeholder="Search message, user, or path…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </CloudscapeSelect>
+        <CloudscapeInput placeholder="Search message, user, or path…" value={search} onChange={(e) => setSearch(e.target.value)} />
         <span className="muted">{visible.length} shown</span>
       </div>
 
@@ -83,9 +86,9 @@ export default function ErrorLogPage() {
               {e.path && <p className="muted connection-detail">{e.method} {e.path}</p>}
               {e.details && (
                 <>
-                  <button className="link-button" onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}>
+                  <CloudscapeButton className="link-button" onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}>
                     {expandedId === e.id ? 'hide stack trace' : 'show stack trace'}
-                  </button>
+                  </CloudscapeButton>
                   {expandedId === e.id && <pre className="favorite-sql error-log-stack">{e.details}</pre>}
                 </>
               )}

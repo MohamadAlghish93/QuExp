@@ -1,3 +1,4 @@
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 
 const SESSION_KEY = 'qe_health_checked'
@@ -38,7 +39,7 @@ export default function ConnectionHealthBanner({ onRefresh }) {
     return (
       <div className="health-banner health-ok">
         ✓ All {health.length} connection{health.length === 1 ? '' : 's'} reachable
-        <button className="link-button" onClick={() => setDismissed(true)}>dismiss</button>
+        <CloudscapeButton className="link-button" onClick={() => setDismissed(true)}>dismiss</CloudscapeButton>
       </div>
     )
   }
@@ -54,10 +55,10 @@ export default function ConnectionHealthBanner({ onRefresh }) {
         </ul>
       </div>
       <div className="health-actions">
-        <button className="link-button" onClick={() => check(true)} disabled={checking}>
+        <CloudscapeButton className="link-button" onClick={() => check(true)} disabled={checking}>
           {checking ? 'Re-testing…' : 'Re-test'}
-        </button>
-        <button className="link-button" onClick={() => setDismissed(true)}>dismiss</button>
+        </CloudscapeButton>
+        <CloudscapeButton className="link-button" onClick={() => setDismissed(true)}>dismiss</CloudscapeButton>
       </div>
     </div>
   )

@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Alert from '@cloudscape-design/components/alert'
+import FileUpload from '@cloudscape-design/components/file-upload'
+import { useState } from 'react'
 import { api } from '../api/client.js'
 
 export default function BackupPage() {
@@ -6,7 +9,7 @@ export default function BackupPage() {
   const [restoring, setRestoring] = useState(false)
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
-  const fileInputRef = useRef(null)
+  const [backupFiles, setBackupFiles] = useState([])
 
   async function handleExport() {
     setExporting(true)
@@ -31,14 +34,13 @@ export default function BackupPage() {
     }
   }
 
-  async function handleFileSelected(e) {
-    const file = e.target.files?.[0]
+  async function handleFileSelected(file) {
     if (!file) return
     if (!confirm(
       'This will overwrite matching connections, favorites, alerts, and users with the data in this file. ' +
       'Connections come back with no password - you\'ll need to re-enter and test each one afterward. Continue?'
     )) {
-      e.target.value = ''
+      setBackupFiles([])
       return
     }
 
@@ -58,7 +60,7 @@ export default function BackupPage() {
       setError(err.message || 'That file could not be read as a valid backup.')
     } finally {
       setRestoring(false)
-      e.target.value = ''
+      setBackupFiles([])
     }
   }
 
@@ -71,14 +73,14 @@ export default function BackupPage() {
         so re-enter and test each connection after restoring.
       </p>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && <Alert type="error">{error}</Alert>}
       {message && <p className="test-ok">{message}</p>}
 
       <div className="backup-actions">
         <div className="connection-form">
           <h3>Export</h3>
           <p className="muted">Downloads a single JSON file with connections (no passwords), favorites/templates, alerts, and users.</p>
-          <button onClick={handleExport} disabled={exporting}>{exporting ? 'Exporting…' : 'Export all data'}</button>
+          <CloudscapeButton onClick={handleExport} disabled={exporting}>{exporting ? 'Exporting…' : 'Export all data'}</CloudscapeButton>
         </div>
 
         <div className="connection-form">
@@ -87,7 +89,21 @@ export default function BackupPage() {
             Imports a previously exported file. Existing records are matched by id/username and
             overwritten; nothing already present that isn't in the file gets deleted.
           </p>
-          <input ref={fileInputRef} type="file" accept="application/json" onChange={handleFileSelected} disabled={restoring} />
+          <FileUpload
+            accept=".json,application/json"
+            value={backupFiles}
+            disabled={restoring}
+            onChange={({ detail }) => {
+              setBackupFiles(detail.value)
+              if (detail.value[0]) handleFileSelected(detail.value[0])
+            }}
+            i18nStrings={{
+              uploadButtonText: (multiple) => multiple ? 'Choose backup files' : 'Choose backup file',
+              dropzoneText: (multiple) => multiple ? 'Drop backup files to upload' : 'Drop a backup file to upload',
+              removeFileAriaLabel: (index) => `Remove file ${index + 1}`,
+              errorIconAriaLabel: 'Error',
+            }}
+          />
         </div>
       </div>
     </div>

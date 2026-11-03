@@ -1,3 +1,5 @@
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -238,12 +240,12 @@ export default function TemplatesPage() {
           <strong>📊 Results</strong>
           <div className="template-result-header-actions">
             {canEditTemplates && (
-              <button className="link-button" onClick={() => navigate(`/pdf-layouts?favoriteId=${t.id}`)}>design PDF layout</button>
+              <CloudscapeButton className="link-button" onClick={() => navigate(`/pdf-layouts?favoriteId=${t.id}`)}>design PDF layout</CloudscapeButton>
             )}
-            <button className="link-button" onClick={() => handleExport(t)} disabled={exportingId === t.id}>
+            <CloudscapeButton className="link-button" onClick={() => handleExport(t)} disabled={exportingId === t.id}>
               {exportingId === t.id ? 'Preparing file…' : '⬇ Download everything (CSV)'}
-            </button>
-            <button className="link-button" onClick={() => closeResult(t.id)}>✕ Close</button>
+            </CloudscapeButton>
+            <CloudscapeButton className="link-button" onClick={() => closeResult(t.id)}>✕ Close</CloudscapeButton>
           </div>
         </div>
 
@@ -264,23 +266,23 @@ export default function TemplatesPage() {
             rows={result.rows}
             dateFieldFormats={t.dateFieldFormats}
             rowActions={(row) => (
-              <button
+              <CloudscapeButton
                 className="icon-text-button row-pdf-button"
                 onClick={() => handleGeneratePdf(t, row)}
                 disabled={generatingPdfFor === t.id}
                 title="Make a PDF of this record"
               >
                 📄 PDF
-              </button>
+              </CloudscapeButton>
             )}
           />
         )}
 
         {(result.skip > 0 || result.hasMore) && (
           <div className="template-pager">
-            <button className="secondary" onClick={() => goToPage(t, result, -1)} disabled={result.skip === 0 || result.loading}>← Previous</button>
+            <CloudscapeButton className="secondary" onClick={() => goToPage(t, result, -1)} disabled={result.skip === 0 || result.loading}>← Previous</CloudscapeButton>
             <span className="muted">Page {page}</span>
-            <button className="secondary" onClick={() => goToPage(t, result, 1)} disabled={!result.hasMore || result.loading}>Next →</button>
+            <CloudscapeButton className="secondary" onClick={() => goToPage(t, result, 1)} disabled={!result.hasMore || result.loading}>Next →</CloudscapeButton>
           </div>
         )}
       </div>
@@ -297,7 +299,7 @@ export default function TemplatesPage() {
     return (
       <div key={t.id} className={result?.columns || result?.error ? 'template-card template-card-expanded' : 'template-card'}>
         {canEditTemplates && (
-          <button className="template-delete-icon" onClick={() => handleDelete(t.id)} title="Remove template" aria-label={`Remove ${t.name}`}>🗑</button>
+          <CloudscapeButton className="template-delete-icon" onClick={() => handleDelete(t.id)} title="Remove template" aria-label={`Remove ${t.name}`}>🗑</CloudscapeButton>
         )}
 
         <div className="template-card-top">
@@ -340,22 +342,22 @@ export default function TemplatesPage() {
           </div>
         )}
 
-        <button className="template-run-button" onClick={() => handleRunClick(t)} disabled={result?.loading}>
+        <CloudscapeButton className="template-run-button" onClick={() => handleRunClick(t)} disabled={result?.loading}>
           {result?.loading && !hasResult
             ? <><span className="spinner spinner-small spinner-on-dark" /> Running…</>
             : hasResult ? '↻ Run again' : '▶ Run report'}
-        </button>
+        </CloudscapeButton>
 
         {(canEditTemplates || t.ownerUsername !== username) && (
           <div className="template-actions template-secondary-actions">
             {canEditTemplates && (
-              <button className="icon-text-button" onClick={() => setSqlViewTemplate(t)} title="See the query behind this report">🔍 View query</button>
+              <CloudscapeButton className="icon-text-button" onClick={() => setSqlViewTemplate(t)} title="See the query behind this report">🔍 View query</CloudscapeButton>
             )}
             {canEditTemplates && (
-              <button className="icon-text-button" onClick={() => setEditingTemplate(t)} title="Edit this template">✎ Edit</button>
+              <CloudscapeButton className="icon-text-button" onClick={() => setEditingTemplate(t)} title="Edit this template">✎ Edit</CloudscapeButton>
             )}
             {t.ownerUsername !== username && (
-              <button className="icon-text-button" onClick={() => handleHide(t.id)} title="Hide this from your Templates list only">🙈 Hide from my list</button>
+              <CloudscapeButton className="icon-text-button" onClick={() => handleHide(t.id)} title="Hide this from your Templates list only">🙈 Hide from my list</CloudscapeButton>
             )}
           </div>
         )}
@@ -364,7 +366,7 @@ export default function TemplatesPage() {
           <div className="template-error-box">
             <strong>We couldn't run this report.</strong>
             <span>{result.error}</span>
-            <button className="secondary" onClick={() => handleRunClick(t)}>Try again</button>
+            <CloudscapeButton className="secondary" onClick={() => handleRunClick(t)}>Try again</CloudscapeButton>
           </div>
         )}
         {result?.error && hasResult && <div className="error-banner">{result.error}</div>}
@@ -386,12 +388,12 @@ export default function TemplatesPage() {
           <ul>
             {recordCounts.map((rc) => (
               <li key={rc.favoriteId}>
-                <button className="category-item" onClick={() => searchFor(rc.name)} title={rc.error || `Find “${rc.name}”`}>
+                <CloudscapeButton className="category-item" onClick={() => searchFor(rc.name)} title={rc.error || `Find “${rc.name}”`}>
                   <span title={rc.name}>{rc.name}</span>
                   <span className="count-badge">
                     {rc.error ? '—' : rc.count === null || rc.count === undefined ? '…' : rc.count.toLocaleString()}
                   </span>
-                </button>
+                </CloudscapeButton>
               </li>
             ))}
           </ul>
@@ -419,8 +421,8 @@ export default function TemplatesPage() {
                   </div>
                   <p className="muted">{t.description || 'No description provided.'}</p>
                   <div className="favorite-card-actions">
-                    <button onClick={() => handleApprove(t.id)}>Approve</button>
-                    <button className="secondary danger" onClick={() => handleReject(t.id)}>Reject</button>
+                    <CloudscapeButton onClick={() => handleApprove(t.id)}>Approve</CloudscapeButton>
+                    <CloudscapeButton className="secondary danger" onClick={() => handleReject(t.id)}>Reject</CloudscapeButton>
                   </div>
                 </li>
               ))}
@@ -430,23 +432,23 @@ export default function TemplatesPage() {
 
         <div className="tpl-search">
           <span className="tpl-search-icon" aria-hidden="true">🔍</span>
-          <input
+          <CloudscapeInput
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Find a report - try a name or a topic…"
             aria-label="Find a report"
           />
-          {searchInput && <button className="link-button" onClick={() => searchFor('')}>clear</button>}
+          {searchInput && <CloudscapeButton className="link-button" onClick={() => searchFor('')}>clear</CloudscapeButton>}
         </div>
 
         {categories.length > 1 && (
           <div className="tpl-chips" role="group" aria-label="Filter by topic">
-            <button className={category === '' ? 'tpl-chip active' : 'tpl-chip'} onClick={() => setCategory('')}>All ({templates.length})</button>
+            <CloudscapeButton className={category === '' ? 'tpl-chip active' : 'tpl-chip'} onClick={() => setCategory('')}>All ({templates.length})</CloudscapeButton>
             {categories.map(([name, count]) => (
-              <button key={name} className={category === name ? 'tpl-chip active' : 'tpl-chip'} onClick={() => setCategory(category === name ? '' : name)}>
+              <CloudscapeButton key={name} className={category === name ? 'tpl-chip active' : 'tpl-chip'} onClick={() => setCategory(category === name ? '' : name)}>
                 {name} ({count})
-              </button>
+              </CloudscapeButton>
             ))}
           </div>
         )}
@@ -463,7 +465,7 @@ export default function TemplatesPage() {
                 ? 'Try a different word, or clear the search to see everything.'
                 : canEditTemplates ? 'Save a query as a template from the Query page and it will appear here.' : 'Ask an Editor or Admin to add some.'}
             </span>
-            {filtering && <button className="secondary" onClick={clearFilters}>Show all reports</button>}
+            {filtering && <CloudscapeButton className="secondary" onClick={clearFilters}>Show all reports</CloudscapeButton>}
           </div>
         ) : (
           <>
@@ -506,7 +508,7 @@ export default function TemplatesPage() {
               <h3>{sqlViewTemplate.name}</h3>
               <pre className="favorite-sql sql-view-block">{sqlViewTemplate.sql}</pre>
               <div className="modal-actions">
-                <button type="button" onClick={() => setSqlViewTemplate(null)}>Close</button>
+                <CloudscapeButton type="button" onClick={() => setSqlViewTemplate(null)}>Close</CloudscapeButton>
               </div>
             </div>
           </div>

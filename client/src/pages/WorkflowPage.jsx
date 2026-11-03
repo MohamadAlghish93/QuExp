@@ -1,3 +1,6 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -179,14 +182,14 @@ export default function WorkflowPage() {
         )}
 
         <div className="favorite-card-actions">
-          <button className="link-button" onClick={() => setSqlOpenId(sqlOpenId === item.favoriteId ? null : item.favoriteId)}>
+          <CloudscapeButton className="link-button" onClick={() => setSqlOpenId(sqlOpenId === item.favoriteId ? null : item.favoriteId)}>
             {sqlOpenId === item.favoriteId ? 'Hide SQL' : 'Review SQL'}
-          </button>
-          <button className="link-button" onClick={() => toggleHistory(item.favoriteId)}>
+          </CloudscapeButton>
+          <CloudscapeButton className="link-button" onClick={() => toggleHistory(item.favoriteId)}>
             {entries ? 'Hide history' : 'History'}
-          </button>
+          </CloudscapeButton>
           {(isAdmin || item.ownerUsername === username) && (
-            <button className="link-button danger" onClick={() => detach(item)}>Detach from workflow</button>
+            <CloudscapeButton className="link-button danger" onClick={() => detach(item)}>Detach from workflow</CloudscapeButton>
           )}
         </div>
         {sqlOpenId === item.favoriteId && <pre className="favorite-sql">{item.sql}</pre>}
@@ -207,44 +210,44 @@ export default function WorkflowPage() {
 
         {showControls ? (
           <div className="wf-actions">
-            <textarea rows={2} placeholder="Add a note (optional) - e.g. what you checked, or why it's being sent back"
+            <CloudscapeTextarea rows={2} placeholder="Add a note (optional) - e.g. what you checked, or why it's being sent back"
                       value={notes[item.favoriteId] || ''}
                       onChange={(e) => setNotes((n) => ({ ...n, [item.favoriteId]: e.target.value }))} />
 
             <div className="wf-actions-group">
               {item.approvableSteps.map((i) => (
-                <button key={`a${i}`} className="wf-approve-button" onClick={() => approveStep(item, i)} disabled={!!busyMessage}>
+                <CloudscapeButton key={`a${i}`} className="wf-approve-button" onClick={() => approveStep(item, i)} disabled={!!busyMessage}>
                   ✅ Approve “{item.steps[i].name}”
-                </button>
+                </CloudscapeButton>
               ))}
 
               {/* Single-step stage: one button moves it on. Parallel stage: each group passes its own step. */}
               {stage.length === 1 && !isLastStage && item.actionableSteps.includes(stage[0]) && (
-                <button onClick={() => moveForward(item, nextName)}
+                <CloudscapeButton onClick={() => moveForward(item, nextName)}
                         disabled={!!busyMessage || (item.steps[stage[0]].requiresApproval && !approved(stage[0]))}
                         title={item.steps[stage[0]].requiresApproval && !approved(stage[0]) ? 'Approve this step first' : undefined}>
                   ➡ Move to “{nextName}”
-                </button>
+                </CloudscapeButton>
               )}
               {stage.length > 1 && item.actionableSteps.map((i) => (
-                <button key={`p${i}`} onClick={() => passStep(item, i)}
+                <CloudscapeButton key={`p${i}`} onClick={() => passStep(item, i)}
                         disabled={!!busyMessage || (item.steps[i].requiresApproval && !approved(i))}
                         title={item.steps[i].requiresApproval && !approved(i) ? 'Approve this step first' : undefined}>
                   ✔ Pass “{item.steps[i].name}”
-                </button>
+                </CloudscapeButton>
               ))}
             </div>
 
             {item.canGoBack && (
               <div className="wf-actions-group">
                 <span className="wf-back">
-                  <select value={backTarget[item.favoriteId] ?? 0}
+                  <CloudscapeSelect value={backTarget[item.favoriteId] ?? 0}
                           onChange={(e) => setBackTarget((b) => ({ ...b, [item.favoriteId]: e.target.value }))}>
                     {stages.slice(0, item.currentStageIndex).map((st, si) => (
                       <option key={si} value={si}>{si + 1}. {stageName(item.steps, st)}</option>
                     ))}
-                  </select>
-                  <button className="secondary" onClick={() => sendBack(item, stages)} disabled={!!busyMessage}>↩ Send back</button>
+                  </CloudscapeSelect>
+                  <CloudscapeButton className="secondary" onClick={() => sendBack(item, stages)} disabled={!!busyMessage}>↩ Send back</CloudscapeButton>
                 </span>
               </div>
             )}
@@ -252,9 +255,9 @@ export default function WorkflowPage() {
             {item.canRevoke && (
               <div className="wf-actions-group">
                 {stage.filter(approved).map((i) => (
-                  <button key={`r${i}`} className="secondary wf-revoke-button" onClick={() => revokeApproval(item, i)} disabled={!!busyMessage}>
+                  <CloudscapeButton key={`r${i}`} className="secondary wf-revoke-button" onClick={() => revokeApproval(item, i)} disabled={!!busyMessage}>
                     🚫 Revoke approval “{item.steps[i].name}” <span className="muted">(Admin)</span>
-                  </button>
+                  </CloudscapeButton>
                 ))}
               </div>
             )}
@@ -306,11 +309,11 @@ export default function WorkflowPage() {
                 <span className="muted">{t.approvalStatus === 'Approved' ? 'currently official' : 'not yet official'}</span>
               </div>
               <div className="toolbar">
-                <select value={pickedDefinition[t.id] || ''} onChange={(e) => setPickedDefinition((p) => ({ ...p, [t.id]: e.target.value }))}>
+                <CloudscapeSelect value={pickedDefinition[t.id] || ''} onChange={(e) => setPickedDefinition((p) => ({ ...p, [t.id]: e.target.value }))}>
                   <option value="">Choose a workflow…</option>
                   {definitions.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.steps.length} steps)</option>)}
-                </select>
-                <button onClick={() => startWorkflow(t)} disabled={!!busyMessage}>🔀 Start workflow</button>
+                </CloudscapeSelect>
+                <CloudscapeButton onClick={() => startWorkflow(t)} disabled={!!busyMessage}>🔀 Start workflow</CloudscapeButton>
               </div>
               {t.approvalStatus === 'Approved' && (
                 <p className="field-hint hint-new">Starting a workflow puts this template back to draft until it reaches an official step again.</p>

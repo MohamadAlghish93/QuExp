@@ -1,3 +1,8 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -329,10 +334,10 @@ export default function PdfLayoutDesignerPage() {
       {error && <div className="error-banner">{error}</div>}
 
       <div className="toolbar">
-        <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+        <CloudscapeSelect value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
           <option value="">Select a template…</option>
           {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
+        </CloudscapeSelect>
       </div>
 
       {templateId && (
@@ -345,14 +350,14 @@ export default function PdfLayoutDesignerPage() {
                 <ul className="pdfd-list">
                   {layouts.map((l) => (
                     <li key={l.id}>
-                      <button className={`pdfd-list-button${l.id === layoutId ? ' active' : ''}`} onClick={() => loadLayoutIntoForm(l)}>
+                      <CloudscapeButton className={`pdfd-list-button${l.id === layoutId ? ' active' : ''}`} onClick={() => loadLayoutIntoForm(l)}>
                         <span className="pdfd-ellipsis">{l.name}</span>{l.hasBackgroundPdf && <span title="Has a background PDF">🖼️</span>}
-                      </button>
+                      </CloudscapeButton>
                     </li>
                   ))}
                 </ul>
               )}
-              <button className="secondary pdfd-full" onClick={resetLayoutForm}>+ New layout</button>
+              <CloudscapeButton className="secondary pdfd-full" onClick={resetLayoutForm}>+ New layout</CloudscapeButton>
             </section>
 
             <section className="pdfd-card">
@@ -362,10 +367,10 @@ export default function PdfLayoutDesignerPage() {
               {sampleColumns.length === 0 && !sampleError && <p className="muted pdfd-hint">Loading columns…</p>}
               <div className="pdfd-chips">
                 {sampleColumns.map((c) => (
-                  <button key={c} type="button" className="tag tag-suggestion pdfd-chip" disabled={usedColumns.has(c)}
+                  <CloudscapeButton key={c} type="button" className="tag tag-suggestion pdfd-chip" disabled={usedColumns.has(c)}
                           onClick={() => addField(c)} title={c}>
                     {usedColumns.has(c) ? '✓' : '+'} {c}
-                  </button>
+                  </CloudscapeButton>
                 ))}
               </div>
             </section>
@@ -376,14 +381,14 @@ export default function PdfLayoutDesignerPage() {
               <ul className="pdfd-list">
                 {tables.map((t, i) => (
                   <li key={t._uid}>
-                    <button className={`pdfd-list-button${selection?.kind === 'table' && selection.index === i ? ' active' : ''}`}
+                    <CloudscapeButton className={`pdfd-list-button${selection?.kind === 'table' && selection.index === i ? ' active' : ''}`}
                             onClick={() => setSelection({ kind: 'table', index: i })}>
                       <span className="pdfd-ellipsis">▦ {t.title || `Table ${i + 1}`}</span>
-                    </button>
+                    </CloudscapeButton>
                   </li>
                 ))}
               </ul>
-              <button className="secondary pdfd-full" onClick={addTable}>+ Add table</button>
+              <CloudscapeButton className="secondary pdfd-full" onClick={addTable}>+ Add table</CloudscapeButton>
             </section>
           </aside>
 
@@ -392,32 +397,32 @@ export default function PdfLayoutDesignerPage() {
             <section className="pdfd-card">
               <h4 className="pdfd-title">Layout</h4>
               <div className="pdfd-settings">
-                <input className="pdfd-name" placeholder="Layout name" value={layoutName} onChange={(e) => setLayoutName(e.target.value)} />
-                <select value={pageSize} onChange={(e) => setPageSize(e.target.value)} title="Page size">
+                <CloudscapeInput className="pdfd-name" placeholder="Layout name" value={layoutName} onChange={(e) => setLayoutName(e.target.value)} />
+                <CloudscapeSelect value={pageSize} onChange={(e) => setPageSize(e.target.value)} title="Page size">
                   <option value="A4">A4</option>
                   <option value="Letter">Letter</option>
-                </select>
-                <select value={zoom} onChange={(e) => setZoom(Number(e.target.value))} title="Zoom">
+                </CloudscapeSelect>
+                <CloudscapeSelect value={zoom} onChange={(e) => setZoom(Number(e.target.value))} title="Zoom">
                   {ZOOMS.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}
-                </select>
+                </CloudscapeSelect>
               </div>
               <div className="pdfd-actions">
-                <button onClick={handleSaveLayout} disabled={saving}>{saving ? 'Saving…' : '💾 Save'}</button>
-                <button className="secondary" onClick={handlePreview} disabled={previewing}>{previewing ? 'Generating…' : '👁 Preview PDF'}</button>
-                {layoutId && <button className="secondary danger" onClick={handleDeleteLayout}>🗑 Delete</button>}
+                <CloudscapeButton onClick={handleSaveLayout} disabled={saving}>{saving ? 'Saving…' : '💾 Save'}</CloudscapeButton>
+                <CloudscapeButton className="secondary" onClick={handlePreview} disabled={previewing}>{previewing ? 'Generating…' : '👁 Preview PDF'}</CloudscapeButton>
+                {layoutId && <CloudscapeButton className="secondary danger" onClick={handleDeleteLayout}>🗑 Delete</CloudscapeButton>}
               </div>
               {message && <p className="test-ok pdfd-message">{message}</p>}
 
               {layoutId && (
                 <div className="pdfd-background">
                   <input ref={backgroundFileInputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleBackgroundFileSelected} />
-                  <button className="secondary" onClick={() => backgroundFileInputRef.current?.click()} disabled={uploadingBackground}>
+                  <CloudscapeButton className="secondary" onClick={() => backgroundFileInputRef.current?.click()} disabled={uploadingBackground}>
                     {uploadingBackground ? 'Uploading…' : hasBackgroundPdf ? '📤 Replace background PDF' : '📤 Upload background PDF'}
-                  </button>
+                  </CloudscapeButton>
                   {hasBackgroundPdf && (
                     <>
                       <span className="muted">Using the first page as the background.</span>
-                      <button className="link-button danger" onClick={handleRemoveBackground}>remove</button>
+                      <CloudscapeButton className="link-button danger" onClick={handleRemoveBackground}>remove</CloudscapeButton>
                     </>
                   )}
                 </div>
@@ -461,21 +466,24 @@ export default function PdfLayoutDesignerPage() {
               <section className="pdfd-card">
                 <div className="pdfd-title-row">
                   <h4 className="pdfd-title pdfd-ellipsis" title={selectedField.columnName}>Field · {selectedField.columnName}</h4>
-                  <button className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</button>
+                  <CloudscapeButton className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</CloudscapeButton>
                 </div>
                 <label className="pdfd-label">Label
-                  <input value={selectedField.label || ''} onChange={(e) => updateField(selection.index, { label: e.target.value })} />
+                  <CloudscapeInput value={selectedField.label || ''} onChange={(e) => updateField(selection.index, { label: e.target.value })} />
                 </label>
                 <div className="pdfd-grid-3">
-                  <label className="pdfd-label">X<input type="number" value={Math.round(selectedField.x)} onChange={(e) => updateField(selection.index, { x: Number(e.target.value) || 0 })} /></label>
-                  <label className="pdfd-label">Y<input type="number" value={Math.round(selectedField.y)} onChange={(e) => updateField(selection.index, { y: Number(e.target.value) || 0 })} /></label>
-                  <label className="pdfd-label">Size<input type="number" value={selectedField.fontSize} onChange={(e) => updateField(selection.index, { fontSize: Number(e.target.value) || 11 })} /></label>
+                  <label className="pdfd-label">X<CloudscapeInput type="number" value={Math.round(selectedField.x)} onChange={(e) => updateField(selection.index, { x: Number(e.target.value) || 0 })} /></label>
+                  <label className="pdfd-label">Y<CloudscapeInput type="number" value={Math.round(selectedField.y)} onChange={(e) => updateField(selection.index, { y: Number(e.target.value) || 0 })} /></label>
+                  <label className="pdfd-label">Size<CloudscapeInput type="number" value={selectedField.fontSize} onChange={(e) => updateField(selection.index, { fontSize: Number(e.target.value) || 11 })} /></label>
                 </div>
-                <label className="pdfd-check">
-                  <input type="checkbox" checked={selectedField.isTable} onChange={(e) => updateField(selection.index, { isTable: e.target.checked })} />
+                <Checkbox
+                  className="pdfd-check"
+                  checked={selectedField.isTable}
+                  onChange={({ detail }) => updateField(selection.index, { isTable: detail.checked })}
+                >
                   Print as a bulleted list (column holds several values)
-                </label>
-                <button className="secondary danger pdfd-full" onClick={() => removeField(selection.index)}>Remove field</button>
+                </Checkbox>
+                <CloudscapeButton className="secondary danger pdfd-full" onClick={() => removeField(selection.index)}>Remove field</CloudscapeButton>
               </section>
             )}
 
@@ -487,37 +495,37 @@ export default function PdfLayoutDesignerPage() {
                 <section className="pdfd-card">
                   <div className="pdfd-title-row">
                     <h4 className="pdfd-title pdfd-ellipsis">Table · {selectedTable.title || `Table ${ti + 1}`}</h4>
-                    <button className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</button>
+                    <CloudscapeButton className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</CloudscapeButton>
                   </div>
 
                   <label className="pdfd-label">Title (optional)
-                    <input value={selectedTable.title} onChange={(e) => updateTable(ti, { title: e.target.value })} placeholder="e.g. Order lines" />
+                    <CloudscapeInput value={selectedTable.title} onChange={(e) => updateTable(ti, { title: e.target.value })} placeholder="e.g. Order lines" />
                   </label>
 
                   <label className="pdfd-label">Runs on
-                    <select value={selectedTable.connectionId || ''} onChange={(e) => updateTable(ti, { connectionId: e.target.value || null })}>
+                    <CloudscapeSelect value={selectedTable.connectionId || ''} onChange={(e) => updateTable(ti, { connectionId: e.target.value || null })}>
                       <option value="">Same connection as the template</option>
                       {connections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    </CloudscapeSelect>
                   </label>
 
                   <label className="pdfd-label">Sub-query
-                    <textarea rows={5} className="pdfd-sql" value={selectedTable.sql}
+                    <CloudscapeTextarea rows={5} className="pdfd-sql" value={selectedTable.sql}
                               onChange={(e) => updateTable(ti, { sql: e.target.value })}
                               placeholder={'SELECT item, qty, price\nFROM order_lines\nWHERE order_id = {{id}}'} />
                   </label>
                   <p className="muted pdfd-hint">Put <code>{'{{name}}'}</code> where the main row's value goes. A placeholder named like a main column uses that column; otherwise it uses the column below.</p>
 
                   <label className="pdfd-label">Main-row column to link on
-                    <select value={selectedTable.parentKeyColumn} onChange={(e) => updateTable(ti, { parentKeyColumn: e.target.value })}>
+                    <CloudscapeSelect value={selectedTable.parentKeyColumn} onChange={(e) => updateTable(ti, { parentKeyColumn: e.target.value })}>
                       <option value="">Select a column…</option>
                       {sampleColumns.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    </CloudscapeSelect>
                   </label>
 
-                  <button className="secondary pdfd-full" onClick={() => loadTableColumns(ti)} disabled={sample?.loading}>
+                  <CloudscapeButton className="secondary pdfd-full" onClick={() => loadTableColumns(ti)} disabled={sample?.loading}>
                     {sample?.loading ? 'Loading…' : '↻ Load columns from sub-query'}
-                  </button>
+                  </CloudscapeButton>
                   {sample?.error && <div className="error-banner">{sample.error}</div>}
 
                   <h5 className="pdfd-subtitle">Columns &amp; headers</h5>
@@ -529,12 +537,12 @@ export default function PdfLayoutDesignerPage() {
                       {selectedTable.columns.map((c, ci) => (
                         <div key={ci} className="pdfd-columns-row">
                           <span className="pdfd-ellipsis" title={c.columnName}>{c.columnName}</span>
-                          <input value={c.header} onChange={(e) => updateColumn(ti, ci, { header: e.target.value })} placeholder="Header" />
-                          <input type="number" value={c.width ?? ''} placeholder="auto" onChange={(e) => updateColumn(ti, ci, { width: e.target.value === '' ? null : Number(e.target.value) })} />
+                          <CloudscapeInput value={c.header} onChange={(e) => updateColumn(ti, ci, { header: e.target.value })} placeholder="Header" />
+                          <CloudscapeInput type="number" value={c.width ?? ''} placeholder="auto" onChange={(e) => updateColumn(ti, ci, { width: e.target.value === '' ? null : Number(e.target.value) })} />
                           <span className="pdfd-column-buttons">
-                            <button className="icon-button" onClick={() => moveColumn(ti, ci, -1)} disabled={ci === 0} aria-label="Move up">↑</button>
-                            <button className="icon-button" onClick={() => moveColumn(ti, ci, 1)} disabled={ci === selectedTable.columns.length - 1} aria-label="Move down">↓</button>
-                            <button className="icon-button" onClick={() => removeColumn(ti, ci)} aria-label="Remove column">×</button>
+                            <CloudscapeButton className="icon-button" onClick={() => moveColumn(ti, ci, -1)} disabled={ci === 0} aria-label="Move up">↑</CloudscapeButton>
+                            <CloudscapeButton className="icon-button" onClick={() => moveColumn(ti, ci, 1)} disabled={ci === selectedTable.columns.length - 1} aria-label="Move down">↓</CloudscapeButton>
+                            <CloudscapeButton className="icon-button" onClick={() => removeColumn(ti, ci)} aria-label="Remove column">×</CloudscapeButton>
                           </span>
                         </div>
                       ))}
@@ -543,21 +551,21 @@ export default function PdfLayoutDesignerPage() {
                   {available.length > 0 && (
                     <div className="pdfd-chips">
                       {available.map((c) => (
-                        <button key={c} type="button" className="tag tag-suggestion pdfd-chip" onClick={() => addColumn(ti, c)}>+ {c}</button>
+                        <CloudscapeButton key={c} type="button" className="tag tag-suggestion pdfd-chip" onClick={() => addColumn(ti, c)}>+ {c}</CloudscapeButton>
                       ))}
                     </div>
                   )}
 
                   <h5 className="pdfd-subtitle">Position</h5>
                   <div className="pdfd-grid-4">
-                    <label className="pdfd-label">X<input type="number" value={Math.round(selectedTable.x)} onChange={(e) => updateTable(ti, { x: Number(e.target.value) || 0 })} /></label>
-                    <label className="pdfd-label">Y<input type="number" value={Math.round(selectedTable.y)} onChange={(e) => updateTable(ti, { y: Number(e.target.value) || 0 })} /></label>
-                    <label className="pdfd-label">Width<input type="number" value={Math.round(selectedTable.width)} onChange={(e) => updateTable(ti, { width: Number(e.target.value) || 0 })} /></label>
-                    <label className="pdfd-label">Size<input type="number" value={selectedTable.fontSize} onChange={(e) => updateTable(ti, { fontSize: Number(e.target.value) || 10 })} /></label>
+                    <label className="pdfd-label">X<CloudscapeInput type="number" value={Math.round(selectedTable.x)} onChange={(e) => updateTable(ti, { x: Number(e.target.value) || 0 })} /></label>
+                    <label className="pdfd-label">Y<CloudscapeInput type="number" value={Math.round(selectedTable.y)} onChange={(e) => updateTable(ti, { y: Number(e.target.value) || 0 })} /></label>
+                    <label className="pdfd-label">Width<CloudscapeInput type="number" value={Math.round(selectedTable.width)} onChange={(e) => updateTable(ti, { width: Number(e.target.value) || 0 })} /></label>
+                    <label className="pdfd-label">Size<CloudscapeInput type="number" value={selectedTable.fontSize} onChange={(e) => updateTable(ti, { fontSize: Number(e.target.value) || 10 })} /></label>
                   </div>
                   <p className="muted pdfd-hint">A long table continues on extra pages, with the header repeated.</p>
 
-                  <button className="secondary danger pdfd-full" onClick={() => removeTable(ti)}>Remove table</button>
+                  <CloudscapeButton className="secondary danger pdfd-full" onClick={() => removeTable(ti)}>Remove table</CloudscapeButton>
                 </section>
               )
             })()}

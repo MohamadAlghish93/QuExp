@@ -1,3 +1,4 @@
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -41,7 +42,7 @@ export default function HistoryPage() {
       <div className="dashboard-header">
         <h2>Query history</h2>
         {entries.length > 0 && (
-          <button className="secondary danger" onClick={handleClear}>Clear history</button>
+          <CloudscapeButton className="secondary danger" onClick={handleClear}>Clear history</CloudscapeButton>
         )}
       </div>
       <p className="muted">Every query you've run, most recent first. Distinct from Favorites — this is automatic.</p>
@@ -67,7 +68,7 @@ export default function HistoryPage() {
                   : <span className="history-error">✗ {entry.error}</span>}
               </p>
               <div className="favorite-card-actions">
-                <button onClick={() => runAgain(entry)}>Run again</button>
+                <CloudscapeButton onClick={() => runAgain(entry)}>Run again</CloudscapeButton>
               </div>
             </li>
           ))}

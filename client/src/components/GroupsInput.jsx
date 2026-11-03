@@ -1,3 +1,5 @@
+import CloudscapeInput from './CloudscapeInput.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useId, useState } from 'react'
 
 // Several groups for one user, entered as separate chips. Type a name and press Enter or comma
@@ -31,10 +33,10 @@ export default function GroupsInput({ value, onChange, suggestions = [] }) {
         {value.map((g) => (
           <span key={g} className="tag tag-removable">
             {g}
-            <button type="button" onClick={() => onChange(value.filter((x) => x !== g))} aria-label={`Remove group ${g}`}>×</button>
+            <CloudscapeButton type="button" onClick={() => onChange(value.filter((x) => x !== g))} aria-label={`Remove group ${g}`}>×</CloudscapeButton>
           </span>
         ))}
-        <input
+        <CloudscapeInput
           className="tag-input"
           value={text}
           list={listId}

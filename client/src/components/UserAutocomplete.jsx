@@ -1,3 +1,5 @@
+import CloudscapeInput from './CloudscapeInput.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api/client.js'
 
@@ -60,12 +62,12 @@ export default function UserAutocomplete({ value, onChange, multi = false, exclu
           {selectedList.map((u) => (
             <span key={u} className="tag tag-removable">
               @{u}
-              <button type="button" onClick={() => removeChip(u)} aria-label={`Remove ${u}`}>×</button>
+              <CloudscapeButton type="button" onClick={() => removeChip(u)} aria-label={`Remove ${u}`}>×</CloudscapeButton>
             </span>
           ))}
         </div>
       )}
-      <input
+      <CloudscapeInput
         value={inputValue}
         onChange={(e) => { setInputValue(e.target.value); setOpen(true); if (!multi) onChange(e.target.value) }}
         onFocus={() => setOpen(true)}
@@ -75,9 +77,9 @@ export default function UserAutocomplete({ value, onChange, multi = false, exclu
       {open && suggestions.length > 0 && (
         <div className="user-autocomplete-menu">
           {suggestions.map((u) => (
-            <button type="button" key={u} className="user-autocomplete-option" onClick={() => selectUser(u)}>
+            <CloudscapeButton type="button" key={u} className="user-autocomplete-option" onClick={() => selectUser(u)}>
               @{u}
-            </button>
+            </CloudscapeButton>
           ))}
         </div>
       )}

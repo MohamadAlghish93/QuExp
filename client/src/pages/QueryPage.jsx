@@ -1,3 +1,6 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -167,18 +170,18 @@ export default function QueryPage() {
       <ConnectionHealthBanner onRefresh={(refresh) => api.getConnectionHealth(refresh)} />
 
       <div className="toolbar">
-        <select value={connectionId} onChange={(e) => setConnectionId(e.target.value)}>
+        <CloudscapeSelect value={connectionId} onChange={(e) => setConnectionId(e.target.value)}>
           {connections.length === 0 && <option value="">No connections configured</option>}
           {connections.map((c) => (
             <option key={c.id} value={c.id}>{c.name} ({c.providerType})</option>
           ))}
-        </select>
+        </CloudscapeSelect>
         {connections.length === 0 && (
           <a className="link-button" href="/connections">Add a connection →</a>
         )}
       </div>
 
-      <textarea
+      <CloudscapeTextarea
         className="sql-editor"
         value={sql}
         onChange={(e) => setSql(e.target.value)}
@@ -189,26 +192,26 @@ export default function QueryPage() {
         <p className="muted param-hint">
           Parameters detected: {requiredParams.join(', ')}
           {' '}
-          <button
+          <CloudscapeButton
             type="button"
             className="link-button"
             onClick={() => { setPendingAction('run'); setShowParamModal(true) }}
           >
             {hasAllValues(paramValues) ? 'edit values' : 'fill in values'}
-          </button>
+          </CloudscapeButton>
         </p>
       )}
 
       <div className="toolbar">
-        <button onClick={() => runQuery(0)} disabled={loading}>
+        <CloudscapeButton onClick={() => runQuery(0)} disabled={loading}>
           {loading ? 'Running…' : 'Run query'}
-        </button>
-        <button className="secondary" onClick={() => exportCsv()} disabled={!page.columns.length || exporting}>
+        </CloudscapeButton>
+        <CloudscapeButton className="secondary" onClick={() => exportCsv()} disabled={!page.columns.length || exporting}>
           {exporting ? 'Exporting…' : 'Export CSV (all rows)'}
-        </button>
-        <button className="secondary" onClick={() => setShowSaveModal(true)} disabled={!sql.trim()}>
+        </CloudscapeButton>
+        <CloudscapeButton className="secondary" onClick={() => setShowSaveModal(true)} disabled={!sql.trim()}>
           ★ Save as favorite
-        </button>
+        </CloudscapeButton>
         {elapsedMs !== null && <span className="muted">page fetched in {elapsedMs}ms</span>}
       </div>
 
@@ -218,16 +221,16 @@ export default function QueryPage() {
 
       {page.columns.length > 0 && (
         <div className="pagination">
-          <button disabled={skip === 0 || loading} onClick={() => runQuery(Math.max(0, skip - PAGE_SIZE))}>
+          <CloudscapeButton disabled={skip === 0 || loading} onClick={() => runQuery(Math.max(0, skip - PAGE_SIZE))}>
             ← Previous
-          </button>
+          </CloudscapeButton>
           <span>
             Rows {skip + 1}–{skip + page.rows.length}
             {totalCount !== null && totalCount !== undefined ? ` of ~${totalCount.toLocaleString()}` : ''}
           </span>
-          <button disabled={!hasMore || loading} onClick={() => runQuery(skip + PAGE_SIZE)}>
+          <CloudscapeButton disabled={!hasMore || loading} onClick={() => runQuery(skip + PAGE_SIZE)}>
             Next →
-          </button>
+          </CloudscapeButton>
         </div>
       )}
 

@@ -1,5 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import Alert from '@cloudscape-design/components/alert'
+import Button from '@cloudscape-design/components/button'
+import Container from '@cloudscape-design/components/container'
+import Form from '@cloudscape-design/components/form'
+import FormField from '@cloudscape-design/components/form-field'
+import Header from '@cloudscape-design/components/header'
+import Input from '@cloudscape-design/components/input'
+import SpaceBetween from '@cloudscape-design/components/space-between'
 import { useAuth } from '../auth/AuthContext.jsx'
 
 export default function LoginPage() {
@@ -28,29 +36,37 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
-      <form className="login-card" onSubmit={handleSubmit}>
-        <h2>Query Explorer</h2>
-        <p className="muted">Sign in to continue</p>
-
-        <label>
-          Username
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoFocus required />
-        </label>
-        <label>
-          Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-
-        {error && <div className="error-banner">{error}</div>}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Signing in…' : 'Sign in'}
-        </button>
-
-        <p className="muted login-hint">
-          First time? Default account: <code>admin</code> / <code>Admin123!</code>
-        </p>
-      </form>
+      <Container header={<Header variant="h1">Query Explorer</Header>}>
+        <form onSubmit={handleSubmit}>
+          <Form
+            actions={<Button variant="primary" formAction="submit" loading={loading} loadingText="Signing in">Sign in</Button>}
+          >
+            <SpaceBetween size="m">
+              <p className="muted">Sign in to continue</p>
+              <FormField label="Username">
+                <Input
+                  value={username}
+                  onChange={({ detail }) => setUsername(detail.value)}
+                  autoFocus
+                  nativeInputAttributes={{ required: true }}
+                />
+              </FormField>
+              <FormField label="Password">
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={({ detail }) => setPassword(detail.value)}
+                  nativeInputAttributes={{ required: true }}
+                />
+              </FormField>
+              {error && <Alert type="error">{error}</Alert>}
+              <p className="muted login-hint">
+                First time? Default account: <code>admin</code> / <code>Admin123!</code>
+              </p>
+            </SpaceBetween>
+          </Form>
+        </form>
+      </Container>
     </div>
   )
 }

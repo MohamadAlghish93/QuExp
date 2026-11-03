@@ -1,4 +1,8 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
+import Alert from '@cloudscape-design/components/alert'
+import Button from '@cloudscape-design/components/button'
+import Popover from '@cloudscape-design/components/popover'
+import Spinner from '@cloudscape-design/components/spinner'
 import { api } from '../api/client.js'
 import {
   isPushSupported, getPushPermissionState, enablePushNotifications, disablePushNotifications,
@@ -9,12 +13,10 @@ const POLL_INTERVAL_MS = 30000
 
 export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
-  const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(false)
   const [pushState, setPushState] = useState('unsupported')
   const [pushError, setPushError] = useState(null)
-  const containerRef = useRef(null)
 
   useEffect(() => {
     if (isPushSupported()) getPushPermissionState().then(setPushState)
@@ -50,24 +52,12 @@ export default function NotificationBell() {
     return () => { cancelled = true; clearInterval(interval) }
   }, [])
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  async function toggleOpen() {
-    const next = !open
-    setOpen(next)
-    if (next) {
-      setLoading(true)
-      try {
-        setNotifications(await api.getNotifications(30))
-      } finally {
-        setLoading(false)
-      }
+  async function loadNotifications() {
+    setLoading(true)
+    try {
+      setNotifications(await api.getNotifications(30))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -84,47 +74,58 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="notification-bell" ref={containerRef}>
-      <button className="bell-button" onClick={toggleOpen} aria-label="Notifications">
-        🔔
-        {unreadCount > 0 && <span className="bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
-      </button>
-
-      {open && (
-        <div className="bell-dropdown">
+    <div className="notification-bell">
+      <Popover
+        header="Notifications"
+        size="large"
+        fixedWidth
+        dismissButton
+        dismissAriaLabel="Close notifications"
+        triggerType="custom"
+        content={
+          <div className="bell-dropdown">
           <div className="bell-dropdown-header">
-            <strong>Notifications</strong>
             {notifications.some((n) => !n.isRead) && (
-              <button className="link-button" onClick={handleMarkAllRead}>mark all read</button>
+              <Button variant="link" onClick={handleMarkAllRead}>Mark all read</Button>
             )}
           </div>
 
           {pushState !== 'unsupported' && (
             <div className="bell-push-toggle">
               <span>{pushState === 'subscribed' ? '🔔 Desktop alerts on' : '🔕 Desktop alerts off'}</span>
-              <button className="link-button" onClick={togglePush} disabled={pushState === 'denied'}>
+              <Button variant="link" onClick={togglePush} disabled={pushState === 'denied'}>
                 {pushState === 'denied' ? 'blocked in browser' : pushState === 'subscribed' ? 'turn off' : 'turn on'}
-              </button>
+              </Button>
             </div>
           )}
-          {pushError && <p className="error-banner bell-push-error">{pushError}</p>}
+          {pushError && <Alert type="error">{pushError}</Alert>}
           {loading ? (
-            <p className="muted bell-empty">Loading…</p>
+            <div className="bell-empty"><Spinner /> Loading notifications…</div>
           ) : notifications.length === 0 ? (
             <p className="muted bell-empty">No notifications yet. Set up an alert to get one.</p>
           ) : (
             <ul className="bell-list">
               {notifications.map((n) => (
-                <li key={n.id} className={n.isRead ? 'bell-item' : 'bell-item bell-item-unread'}
-                    onClick={() => !n.isRead && handleMarkRead(n.id)}>
+                <li key={n.id} className={n.isRead ? 'bell-item' : 'bell-item bell-item-unread'}>
                   <p>{n.message}</p>
                   <span className="muted">{new Date(n.createdAtUtc).toLocaleString()}</span>
+                  {!n.isRead && (
+                    <Button variant="link" onClick={() => handleMarkRead(n.id)}>Mark as read</Button>
+                  )}
                 </li>
               ))}
             </ul>
           )}
-        </div>
-      )}
+          </div>
+        }
+      >
+        <Button
+          variant="icon"
+          iconName="notification"
+          ariaLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+          onClick={loadNotifications}
+        />
+      </Popover>
     </div>
   )
 }

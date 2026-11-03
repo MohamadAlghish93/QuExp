@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import CloudscapeButton from './CloudscapeButton.jsx'
+import CloudscapeInput from './CloudscapeInput.jsx'
+import Box from '@cloudscape-design/components/box'
+import Table from '@cloudscape-design/components/table'
+import { useEffect, useState, useMemo } from 'react'
 import { formatDateField } from '../utils/dateFieldFormat.js'
 
 const DEFAULT_WIDTH = 160
@@ -17,7 +21,6 @@ const MIN_WIDTH = 60
 export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats }) {
   const [widths, setWidths] = useState({})
   const [query, setQuery] = useState('')
-  const resizeState = useRef(null) // { column, startX, startWidth }
 
   const dateFormatByColumn = useMemo(() => {
     const map = {}
@@ -47,29 +50,6 @@ export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats
     })
   }, [rows, columns, terms, dateFormatByColumn])
 
-  const getWidth = (col) => widths[col] ?? DEFAULT_WIDTH
-
-  const onMouseDown = useCallback((col, e) => {
-    e.preventDefault()
-    resizeState.current = { column: col, startX: e.clientX, startWidth: getWidth(col) }
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-  }, [widths]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const onMouseMove = useCallback((e) => {
-    const state = resizeState.current
-    if (!state) return
-    const delta = e.clientX - state.startX
-    const newWidth = Math.max(MIN_WIDTH, state.startWidth + delta)
-    setWidths((w) => ({ ...w, [state.column]: newWidth }))
-  }, [])
-
-  const onMouseUp = useCallback(() => {
-    resizeState.current = null
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', onMouseUp)
-  }, [onMouseMove])
-
   if (!columns.length) {
     return <p className="muted">Run a query to see results here.</p>
   }
@@ -81,13 +61,28 @@ export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats
   }
 
   const searching = terms.length > 0
+  const columnDefinitions = [
+    ...(rowActions ? [{ id: 'actions', header: '', cell: (row) => rowActions(row), width: 96, minWidth: 96 }] : []),
+    ...columns.map((col) => ({
+      id: col,
+      header: (
+        <span title={dateFormatByColumn[col] ? `${col} (formatted as date)` : col}>
+          {col}{dateFormatByColumn[col] ? ' 📅' : ''}
+        </span>
+      ),
+      cell: (row) => formatCell(displayValue(col, row[col])),
+      width: widths[col] ?? DEFAULT_WIDTH,
+      minWidth: MIN_WIDTH,
+    })),
+  ]
+  const actionColumnCount = rowActions ? 1 : 0
 
   return (
     <div className="grid-with-search">
       {rows.length > 0 && (
         <div className="grid-search">
           <span className="grid-search-icon" aria-hidden="true">🔍</span>
-          <input
+          <CloudscapeInput
             type="search"
             className="grid-search-input"
             value={query}
@@ -96,7 +91,7 @@ export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats
             aria-label="Search the rows in this table"
             title="Searches the rows shown on this page. Several words narrow it down."
           />
-          {searching && <button type="button" className="link-button" onClick={() => setQuery('')}>clear</button>}
+          {searching && <CloudscapeButton type="button" className="link-button" onClick={() => setQuery('')}>clear</CloudscapeButton>}
           <span className="muted grid-search-count">
             {searching ? `${visibleRows.length} of ${rows.length} rows match` : `${rows.length} row${rows.length === 1 ? '' : 's'}`}
           </span>
@@ -104,52 +99,39 @@ export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats
       )}
 
       <div className="grid-wrapper">
-        <table className="result-grid" style={{ tableLayout: 'fixed' }}>
-          <colgroup>
-            {rowActions && <col style={{ width: '96px' }} />}
-            {columns.map((col) => (
-              <col key={col} style={{ width: `${getWidth(col)}px` }} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr>
-              {rowActions && <th className="row-actions-header"></th>}
-              {columns.map((col) => (
-                <th key={col}>
-                  <div className="th-content">
-                    <span className="th-label" title={dateFormatByColumn[col] ? `${col} (formatted as date)` : col}>
-                      {col}{dateFormatByColumn[col] ? ' 📅' : ''}
-                    </span>
-                    <span
-                      className="col-resize-handle"
-                      onMouseDown={(e) => onMouseDown(col, e)}
-                      role="separator"
-                      aria-orientation="vertical"
-                      aria-label={`Resize ${col} column`}
-                    />
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visibleRows.map((row, i) => (
-              <tr key={i}>
-                {rowActions && <td className="row-actions-cell">{rowActions(row)}</td>}
-                {columns.map((col) => {
-                  const display = displayValue(col, row[col])
-                  return <td key={col} title={formatTitle(row[col])}>{formatCell(display)}</td>
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {rows.length === 0 && <p className="muted">No rows in this page.</p>}
-        {rows.length > 0 && visibleRows.length === 0 && (
-          <p className="muted grid-no-match">
-            Nothing on this page matches “{query.trim()}”. <button type="button" className="link-button" onClick={() => setQuery('')}>Clear the search</button>
-          </p>
-        )}
+        <Table
+          variant="embedded"
+          contentDensity="compact"
+          columnDefinitions={columnDefinitions}
+          items={visibleRows}
+          resizableColumns
+          onColumnWidthsChange={({ detail }) => {
+            setWidths((current) => {
+              const next = { ...current }
+              detail.widths.slice(actionColumnCount).forEach((width, index) => {
+                if (columns[index]) next[columns[index]] = width
+              })
+              return next
+            })
+          }}
+          ariaLabels={{
+            tableLabel: 'Query results',
+            resizerTooltipText: 'Resize column',
+            resizerRoleDescription: 'Column resizer',
+          }}
+          empty={
+            <Box textAlign="center">
+              {rows.length === 0 ? 'No rows in this page.' : (
+                <>
+                  Nothing on this page matches “{query.trim()}”.{' '}
+                  <CloudscapeButton type="button" className="link-button" onClick={() => setQuery('')}>
+                    Clear the search
+                  </CloudscapeButton>
+                </>
+              )}
+            </Box>
+          }
+        />
       </div>
     </div>
   )
@@ -158,8 +140,4 @@ export default function ResultGrid({ columns, rows, rowActions, dateFieldFormats
 function formatCell(value) {
   if (value === null || value === undefined) return <span className="null-cell">NULL</span>
   return String(value)
-}
-
-function formatTitle(value) {
-  return value === null || value === undefined ? 'NULL' : String(value)
 }

@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react'
+import Alert from '@cloudscape-design/components/alert'
+import Box from '@cloudscape-design/components/box'
+import Header from '@cloudscape-design/components/header'
+import StatusIndicator from '@cloudscape-design/components/status-indicator'
+import Table from '@cloudscape-design/components/table'
 import { api } from '../api/client.js'
 
 export default function AuditLogPage() {
@@ -15,37 +20,21 @@ export default function AuditLogPage() {
 
   return (
     <div className="favorites-page">
-      <h2>Audit log</h2>
-      <p className="muted">Admin-level actions - who did what, and when.</p>
-
-      {error && <div className="error-banner">{error}</div>}
-
-      {loading ? (
-        <p className="muted">Loading…</p>
-      ) : entries.length === 0 ? (
-        <p className="muted">No admin actions logged yet.</p>
-      ) : (
-        <table className="result-grid audit-log-table">
-          <thead>
-            <tr>
-              <th>When</th>
-              <th>Who</th>
-              <th>Action</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e) => (
-              <tr key={e.id}>
-                <td>{new Date(e.createdAtUtc).toLocaleString()}</td>
-                <td>@{e.actorUsername}</td>
-                <td><span className="badge">{e.action}</span></td>
-                <td>{e.targetDescription}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {error && <Alert type="error">{error}</Alert>}
+      <Table
+        columnDefinitions={[
+          { id: 'when', header: 'When', cell: (entry) => new Date(entry.createdAtUtc).toLocaleString() },
+          { id: 'who', header: 'Who', cell: (entry) => `@${entry.actorUsername}` },
+          { id: 'action', header: 'Action', cell: (entry) => <StatusIndicator type="info">{entry.action}</StatusIndicator> },
+          { id: 'details', header: 'Details', cell: (entry) => entry.targetDescription },
+        ]}
+        items={entries}
+        trackBy="id"
+        loading={loading}
+        loadingText="Loading audit log"
+        empty={<Box textAlign="center">No admin actions logged yet.</Box>}
+        header={<Header variant="h2" description="Admin-level actions — who did what, and when.">Audit log</Header>}
+      />
     </div>
   )
 }

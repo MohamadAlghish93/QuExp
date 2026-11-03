@@ -1,3 +1,5 @@
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import { SCREENS, RESTRICTABLE_SCREENS, ALWAYS_VISIBLE_SCREEN_KEYS } from '../constants/screens.js'
@@ -106,10 +108,9 @@ export default function PermissionsPage() {
             <>
               <h3>Screens for {selectedUsername}</h3>
 
-              <label className="checkbox-label">
-                <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
+              <Checkbox checked={showAll} onChange={({ detail }) => setShowAll(detail.checked)}>
                 Show all screens (default)
-              </label>
+              </Checkbox>
 
               {!showAll && (
                 <ScreenTransferList allScreens={RESTRICTABLE_SCREENS} assignedKeys={assignedKeys} onChange={setAssignedKeys} />
@@ -118,7 +119,7 @@ export default function PermissionsPage() {
               {message && <p className="test-ok">{message}</p>}
 
               <div className="modal-actions">
-                <button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+                <CloudscapeButton onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</CloudscapeButton>
               </div>
             </>
           )}

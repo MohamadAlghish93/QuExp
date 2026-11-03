@@ -1,3 +1,4 @@
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
@@ -22,9 +23,9 @@ export default function NavDropdown({ label, items }) {
 
   return (
     <div className="nav-dropdown" ref={containerRef}>
-      <button className={isActive ? 'nav-dropdown-trigger active' : 'nav-dropdown-trigger'} onClick={() => setOpen((o) => !o)}>
+      <CloudscapeButton className={isActive ? 'nav-dropdown-trigger active' : 'nav-dropdown-trigger'} onClick={() => setOpen((o) => !o)}>
         {label} ▾
-      </button>
+      </CloudscapeButton>
       {open && (
         <div className="nav-dropdown-menu">
           {items.map((item) => (

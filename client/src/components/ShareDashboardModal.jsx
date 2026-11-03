@@ -1,7 +1,10 @@
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import UserAutocomplete from './UserAutocomplete.jsx'
+import Alert from '@cloudscape-design/components/alert'
+import Modal from '@cloudscape-design/components/modal'
 
 export default function ShareDashboardModal({ item, onShared, onClose }) {
   const { username: myUsername } = useAuth()
@@ -34,9 +37,14 @@ export default function ShareDashboardModal({ item, onShared, onClose }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={handleShare}>
-        <h3>Share "{item.title}"</h3>
+    <Modal
+      visible
+      size="medium"
+      header={`Share "${item.title}"`}
+      onDismiss={onClose}
+      closeAriaLabel="Close sharing dialog"
+    >
+      <form className="cloudscape-modal-content" onSubmit={handleShare}>
         <p className="muted">This tile will also appear on their dashboard, kept live the same way it is on yours.</p>
 
         <label>
@@ -51,20 +59,20 @@ export default function ShareDashboardModal({ item, onShared, onClose }) {
               {item.sharedWithUsernames.map((u) => (
                 <span key={u} className="tag tag-removable">
                   @{u}
-                  <button type="button" onClick={() => handleUnshare(u)} aria-label={`Unshare with ${u}`}>×</button>
+                  <CloudscapeButton type="button" onClick={() => handleUnshare(u)} aria-label={`Unshare with ${u}`}>×</CloudscapeButton>
                 </span>
               ))}
             </div>
           </div>
         )}
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <Alert type="error">{error}</Alert>}
 
         <div className="modal-actions">
-          <button type="button" className="secondary" onClick={onClose}>Close</button>
-          <button type="submit" disabled={!target || saving}>{saving ? 'Sharing…' : 'Share'}</button>
+          <CloudscapeButton type="button" className="secondary" onClick={onClose}>Close</CloudscapeButton>
+          <CloudscapeButton type="submit" disabled={!target || saving}>{saving ? 'Sharing…' : 'Share'}</CloudscapeButton>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

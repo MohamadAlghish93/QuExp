@@ -1,3 +1,6 @@
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -234,9 +237,9 @@ export default function FavoritesPage() {
           <div className="tag-manager">
             <span className="muted">Manage tags:</span>
             {allTags.map((t) => (
-              <button key={t} type="button" className="tag tag-suggestion" onClick={() => handleRenameTag(t)} title={`Rename "${t}"`}>
+              <CloudscapeButton key={t} type="button" className="tag tag-suggestion" onClick={() => handleRenameTag(t)} title={`Rename "${t}"`}>
                 {t} ✎
-              </button>
+              </CloudscapeButton>
             ))}
           </div>
         )}
@@ -258,10 +261,10 @@ export default function FavoritesPage() {
                         <pre className="favorite-sql assignment-sql">{a.sql}</pre>
                       </div>
                       <div className="assignment-item-actions">
-                        <button className="secondary" onClick={() => handleRunAssignment(a)}>Run</button>
-                        <button className="link-button" onClick={() => handleCompleteAssignment(a.id)} disabled={completingId !== null}>
+                        <CloudscapeButton className="secondary" onClick={() => handleRunAssignment(a)}>Run</CloudscapeButton>
+                        <CloudscapeButton className="link-button" onClick={() => handleCompleteAssignment(a.id)} disabled={completingId !== null}>
                           {completingId === a.id ? '⏳ marking done…' : 'mark done'}
-                        </button>
+                        </CloudscapeButton>
                       </div>
                     </li>
                   ))}
@@ -286,7 +289,7 @@ export default function FavoritesPage() {
                             : 'Not completed yet'}
                         </span>
                       </div>
-                      <button className="link-button danger" onClick={() => handleCancelAssignment(a.id)}>cancel</button>
+                      <CloudscapeButton className="link-button danger" onClick={() => handleCancelAssignment(a.id)}>cancel</CloudscapeButton>
                     </li>
                   ))}
                 </ul>
@@ -296,7 +299,7 @@ export default function FavoritesPage() {
         )}
 
         <div className="toolbar">
-          <input
+          <CloudscapeInput
             placeholder="Search name, SQL, or tag…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -304,7 +307,7 @@ export default function FavoritesPage() {
           {category && (
             <span className="active-filter">
               {category}
-              <button type="button" onClick={() => setCategory('')} aria-label="Clear category filter">×</button>
+              <CloudscapeButton type="button" onClick={() => setCategory('')} aria-label="Clear category filter">×</CloudscapeButton>
             </span>
           )}
         </div>
@@ -313,18 +316,18 @@ export default function FavoritesPage() {
           <div className="bulk-actions-bar">
             <span>{selectedIds.length} selected</span>
             <div className="bulk-actions-controls">
-              <input placeholder="Move to category…" value={bulkCategory} onChange={(e) => setBulkCategory(e.target.value)} list="existing-categories-bulk" />
+              <CloudscapeInput placeholder="Move to category…" value={bulkCategory} onChange={(e) => setBulkCategory(e.target.value)} list="existing-categories-bulk" />
               <datalist id="existing-categories-bulk">
                 {categories.map((c) => <option key={c} value={c} />)}
               </datalist>
-              <button className="secondary" onClick={handleBulkMoveCategory} disabled={!bulkCategory.trim()}>Move</button>
+              <CloudscapeButton className="secondary" onClick={handleBulkMoveCategory} disabled={!bulkCategory.trim()}>Move</CloudscapeButton>
             </div>
             <div className="bulk-actions-controls">
-              <input placeholder="Add tag…" value={bulkTag} onChange={(e) => setBulkTag(e.target.value)} />
-              <button className="secondary" onClick={handleBulkAddTag} disabled={!bulkTag.trim()}>Add tag</button>
+              <CloudscapeInput placeholder="Add tag…" value={bulkTag} onChange={(e) => setBulkTag(e.target.value)} />
+              <CloudscapeButton className="secondary" onClick={handleBulkAddTag} disabled={!bulkTag.trim()}>Add tag</CloudscapeButton>
             </div>
-            <button className="secondary danger" onClick={handleBulkDelete}>Delete selected</button>
-            <button className="link-button" onClick={clearSelection}>clear selection</button>
+            <CloudscapeButton className="secondary danger" onClick={handleBulkDelete}>Delete selected</CloudscapeButton>
+            <CloudscapeButton className="link-button" onClick={clearSelection}>clear selection</CloudscapeButton>
           </div>
         )}
         {bulkMessage && <p className="test-ok">{bulkMessage}</p>}
@@ -332,10 +335,13 @@ export default function FavoritesPage() {
         {error && <div className="error-banner">{error}</div>}
 
         {visible.length > 0 && (
-          <label className="select-all-row">
-            <input type="checkbox" checked={visible.every((f) => selectedIds.includes(f.id))} onChange={toggleSelectAllVisible} />
+          <Checkbox
+            className="select-all-row"
+            checked={visible.every((f) => selectedIds.includes(f.id))}
+            onChange={toggleSelectAllVisible}
+          >
             Select all shown
-          </label>
+          </Checkbox>
         )}
 
         {visible.length === 0 ? (
@@ -349,18 +355,21 @@ export default function FavoritesPage() {
             {visible.map((fav) => (
               <li key={fav.id} className={selectedIds.includes(fav.id) ? 'favorite-card favorite-card-selected' : 'favorite-card'}>
                 <div className="favorite-card-header">
-                  <label className="favorite-select-checkbox">
-                    <input type="checkbox" checked={selectedIds.includes(fav.id)} onChange={() => toggleSelected(fav.id)} />
-                  </label>
+                  <Checkbox
+                    className="favorite-select-checkbox"
+                    checked={selectedIds.includes(fav.id)}
+                    onChange={() => toggleSelected(fav.id)}
+                    ariaLabel={`Select ${fav.name}`}
+                  />
                   <strong>{fav.name}</strong>
-                  <button
+                  <CloudscapeButton
                     type="button"
                     className="badge badge-button"
                     onClick={() => setCategory(fav.category)}
                     title={`Show all in ${fav.category}`}
                   >
                     {fav.category}
-                  </button>
+                  </CloudscapeButton>
                 </div>
                 <pre className="favorite-sql">{fav.sql}</pre>
                 {fav.tags.length > 0 && (
@@ -369,10 +378,10 @@ export default function FavoritesPage() {
                   </div>
                 )}
                 <div className="favorite-card-actions">
-                  <button onClick={() => handleUse(fav)}>Run again</button>
-                  <button className="secondary" onClick={() => setAssigningFavorite(fav)}>@ Assign</button>
-                  <button className="secondary" onClick={() => handleCreateAlert(fav)}>🔔 Create alert</button>
-                  <button className="secondary danger" onClick={() => handleDelete(fav.id)}>Delete</button>
+                  <CloudscapeButton onClick={() => handleUse(fav)}>Run again</CloudscapeButton>
+                  <CloudscapeButton className="secondary" onClick={() => setAssigningFavorite(fav)}>@ Assign</CloudscapeButton>
+                  <CloudscapeButton className="secondary" onClick={() => handleCreateAlert(fav)}>🔔 Create alert</CloudscapeButton>
+                  <CloudscapeButton className="secondary danger" onClick={() => handleDelete(fav.id)}>Delete</CloudscapeButton>
                 </div>
               </li>
             ))}

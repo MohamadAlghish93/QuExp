@@ -1,3 +1,5 @@
+import CloudscapeInput from './CloudscapeInput.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useState } from 'react'
 
 export default function TabBar({ tabs, activeId, onSelect, onClose, onAdd, onRename }) {
@@ -23,7 +25,7 @@ export default function TabBar({ tabs, activeId, onSelect, onClose, onAdd, onRen
           onClick={() => onSelect(tab.id)}
         >
           {renamingId === tab.id ? (
-            <input
+            <CloudscapeInput
               className="tab-rename-input"
               value={renameValue}
               autoFocus
@@ -38,17 +40,17 @@ export default function TabBar({ tabs, activeId, onSelect, onClose, onAdd, onRen
             </span>
           )}
           {tabs.length > 1 && (
-            <button
+            <CloudscapeButton
               className="tab-close"
               onClick={(e) => { e.stopPropagation(); onClose(tab.id) }}
               aria-label={`Close ${tab.label}`}
             >
               ×
-            </button>
+            </CloudscapeButton>
           )}
         </div>
       ))}
-      <button className="tab-add" onClick={onAdd} aria-label="New query tab">+</button>
+      <CloudscapeButton className="tab-add" onClick={onAdd} aria-label="New query tab">+</CloudscapeButton>
     </div>
   )
 }

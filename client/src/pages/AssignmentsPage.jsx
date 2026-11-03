@@ -1,3 +1,4 @@
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -87,13 +88,13 @@ export default function AssignmentsPage() {
               </p>
               <pre className="favorite-sql assignment-sql">{a.sql}</pre>
               <div className="favorite-card-actions">
-                <button onClick={() => handleRun(a)}>Run</button>
-                <button className="secondary" onClick={() => handleComplete(a.id)} disabled={busyId !== null}>
+                <CloudscapeButton onClick={() => handleRun(a)}>Run</CloudscapeButton>
+                <CloudscapeButton className="secondary" onClick={() => handleComplete(a.id)} disabled={busyId !== null}>
                   {busyId === a.id ? '⏳ Marking done…' : 'Mark done'}
-                </button>
-                <button className="secondary danger" onClick={() => handleCancel(a.id)} disabled={busyId !== null}>
+                </CloudscapeButton>
+                <CloudscapeButton className="secondary danger" onClick={() => handleCancel(a.id)} disabled={busyId !== null}>
                   {busyId === a.id ? 'Working…' : 'Cancel'}
-                </button>
+                </CloudscapeButton>
               </div>
             </li>
           ))}
@@ -120,9 +121,9 @@ export default function AssignmentsPage() {
                   : 'not completed yet'}
               </p>
               <div className="favorite-card-actions">
-                <button className="secondary danger" onClick={() => handleCancel(a.id)} disabled={busyId !== null}>
+                <CloudscapeButton className="secondary danger" onClick={() => handleCancel(a.id)} disabled={busyId !== null}>
                   {busyId === a.id ? 'Working…' : 'Cancel'}
-                </button>
+                </CloudscapeButton>
               </div>
             </li>
           ))}

@@ -1,3 +1,4 @@
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -70,15 +71,15 @@ export default function DashboardPage() {
                 <strong title={item.title}>{item.title}</strong>
                 {item.isOwnedByMe ? (
                   <div className="dashboard-card-actions">
-                    <button className="link-button" onClick={() => setSharingItem(item)}>share</button>
-                    <button className="link-button danger" onClick={() => handleUnpin(item.id)}>unpin</button>
+                    <CloudscapeButton className="link-button" onClick={() => setSharingItem(item)}>share</CloudscapeButton>
+                    <CloudscapeButton className="link-button danger" onClick={() => handleUnpin(item.id)}>unpin</CloudscapeButton>
                   </div>
                 ) : (
                   <div className="dashboard-card-actions">
                     <span className="badge badge-muted">shared by @{item.ownerUsername}</span>
-                    <button className="link-button danger" onClick={() => handleHide(item.id)} title="Hide this from your dashboard only">
+                    <CloudscapeButton className="link-button danger" onClick={() => handleHide(item.id)} title="Hide this from your dashboard only">
                       hide
-                    </button>
+                    </CloudscapeButton>
                   </div>
                 )}
               </div>

@@ -1,3 +1,4 @@
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 
 // Left-hand menu listing every category with a count, plus an "All" entry.
@@ -17,17 +18,17 @@ export default function CategorySidebar({ categories, counts, selected, onSelect
       <h4>Categories</h4>
       <ul>
         <li>
-          <button
+          <CloudscapeButton
             className={selected === '' ? 'category-item active' : 'category-item'}
             onClick={() => onSelect('')}
           >
             <span>All queries</span>
             <span className="count-badge">{totalCount}</span>
-          </button>
+          </CloudscapeButton>
         </li>
         {categories.map((category) => (
           <li key={category}>
-            <button
+            <CloudscapeButton
               className={selected === category ? 'category-item active' : 'category-item'}
               onClick={() => onSelect(category)}
             >
@@ -36,7 +37,7 @@ export default function CategorySidebar({ categories, counts, selected, onSelect
                 <span className="category-rename" onClick={(e) => handleRenameClick(e, category)} title="Rename category">✎</span>
               )}
               <span className="count-badge">{counts[category] ?? 0}</span>
-            </button>
+            </CloudscapeButton>
           </li>
         ))}
       </ul>

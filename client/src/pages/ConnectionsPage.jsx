@@ -1,3 +1,6 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -118,43 +121,43 @@ export default function ConnectionsPage() {
 
           <label>
             Display name
-            <input value={form.name} onChange={(e) => update('name', e.target.value)} required
+            <CloudscapeInput value={form.name} onChange={(e) => update('name', e.target.value)} required
                    placeholder="Production reporting DB" />
           </label>
 
           <label>
             Database type
-            <select value={form.providerType} onChange={(e) => update('providerType', e.target.value)}>
+            <CloudscapeSelect value={form.providerType} onChange={(e) => update('providerType', e.target.value)}>
               <option value="SqlServer">SQL Server</option>
               <option value="Oracle">Oracle</option>
-            </select>
+            </CloudscapeSelect>
           </label>
 
           <div className="form-row">
             <label className="grow">
               Host
-              <input value={form.host} onChange={(e) => update('host', e.target.value)} required />
+              <CloudscapeInput value={form.host} onChange={(e) => update('host', e.target.value)} required />
             </label>
             <label className="port-field">
               Port
-              <input type="number" value={form.port} onChange={(e) => update('port', e.target.value)} />
+              <CloudscapeInput type="number" value={form.port} onChange={(e) => update('port', e.target.value)} />
             </label>
           </div>
 
           <label>
             {form.providerType === 'Oracle' ? 'Service name / SID' : 'Database'}
-            <input value={form.database} onChange={(e) => update('database', e.target.value)}
+            <CloudscapeInput value={form.database} onChange={(e) => update('database', e.target.value)}
                    placeholder={form.providerType === 'Oracle' ? 'XEPDB1' : 'ReportingDb'} />
           </label>
 
           <label>
             Username
-            <input value={form.username} onChange={(e) => update('username', e.target.value)} autoComplete="off" />
+            <CloudscapeInput value={form.username} onChange={(e) => update('username', e.target.value)} autoComplete="off" />
           </label>
 
           <label>
             Password
-            <input type="password" value={form.password} onChange={(e) => update('password', e.target.value)}
+            <CloudscapeInput type="password" value={form.password} onChange={(e) => update('password', e.target.value)}
                    autoComplete="new-password"
                    placeholder={editing && form.hasPassword ? 'Leave blank to keep current password' : ''} />
           </label>
@@ -164,7 +167,7 @@ export default function ConnectionsPage() {
 
           <label>
             Extra options (optional)
-            <input value={form.extraOptions} onChange={(e) => update('extraOptions', e.target.value)}
+            <CloudscapeInput value={form.extraOptions} onChange={(e) => update('extraOptions', e.target.value)}
                    placeholder="Encrypt=True;MultiSubnetFailover=True" />
           </label>
 
@@ -188,11 +191,11 @@ export default function ConnectionsPage() {
           )}
 
           <div className="modal-actions">
-            {editing && <button type="button" className="secondary" onClick={resetForm}>Cancel</button>}
-            <button type="button" className="secondary" onClick={handleTest} disabled={testing || !form.host}>
+            {editing && <CloudscapeButton type="button" className="secondary" onClick={resetForm}>Cancel</CloudscapeButton>}
+            <CloudscapeButton type="button" className="secondary" onClick={handleTest} disabled={testing || !form.host}>
               {testing ? 'Testing…' : 'Test connection'}
-            </button>
-            <button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+            </CloudscapeButton>
+            <CloudscapeButton type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</CloudscapeButton>
           </div>
         </form>
         ) : (
@@ -218,8 +221,8 @@ export default function ConnectionsPage() {
                   </p>
                   {canEditConnections && (
                     <div className="favorite-card-actions">
-                      <button className="secondary" onClick={() => startEdit(c)}>Edit</button>
-                      <button className="secondary danger" onClick={() => handleDelete(c.id)}>Delete</button>
+                      <CloudscapeButton className="secondary" onClick={() => startEdit(c)}>Edit</CloudscapeButton>
+                      <CloudscapeButton className="secondary danger" onClick={() => handleDelete(c.id)}>Delete</CloudscapeButton>
                     </div>
                   )}
                 </li>

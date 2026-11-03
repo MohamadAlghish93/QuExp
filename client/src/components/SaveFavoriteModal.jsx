@@ -1,7 +1,14 @@
+import CloudscapeInput from './CloudscapeInput.jsx'
+import CloudscapeTextarea from './CloudscapeTextarea.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useEffect, useMemo, useState } from 'react'
+import Checkbox from '@cloudscape-design/components/checkbox'
+import RadioGroup from '@cloudscape-design/components/radio-group'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import UserAutocomplete from './UserAutocomplete.jsx'
+import Alert from '@cloudscape-design/components/alert'
+import Modal from '@cloudscape-design/components/modal'
 
 // Used both to save a NEW favorite/template (initialValues omitted) and to EDIT
 // an existing one (initialValues passed in, including its id) - e.g. from the
@@ -122,18 +129,23 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <form className="modal modal-wide" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-        <h3>{isEditing ? 'Edit favorite' : 'Save as favorite'}</h3>
+    <Modal
+      visible
+      size="large"
+      header={isEditing ? 'Edit favorite' : 'Save as favorite'}
+      onDismiss={onClose}
+      closeAriaLabel="Close favorite dialog"
+    >
+      <form className="cloudscape-modal-content" onSubmit={handleSubmit}>
 
         <label>
           Name
-          <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
+          <CloudscapeInput value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
         </label>
 
         <label>
           Category
-          <input
+          <CloudscapeInput
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             list="existing-categories"
@@ -155,10 +167,10 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
             {tags.map((t) => (
               <span key={t} className="tag tag-removable">
                 {t}
-                <button type="button" onClick={() => removeTag(t)} aria-label={`Remove tag ${t}`}>×</button>
+                <CloudscapeButton type="button" onClick={() => removeTag(t)} aria-label={`Remove tag ${t}`}>×</CloudscapeButton>
               </span>
             ))}
-            <input
+            <CloudscapeInput
               className="tag-input"
               value={tagInput}
               onChange={(e) => { setTagInput(e.target.value); setError(null) }}
@@ -172,9 +184,9 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
           <div className="tag-suggestions">
             <span className="muted">Existing:</span>
             {tagSuggestions.map((t) => (
-              <button type="button" key={t} className="tag tag-suggestion" onClick={() => addTag(t)}>
+              <CloudscapeButton type="button" key={t} className="tag tag-suggestion" onClick={() => addTag(t)}>
                 + {t}
-              </button>
+              </CloudscapeButton>
             ))}
           </div>
         )}
@@ -187,43 +199,39 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
         </p>
         {dateFieldFormats.map((f, i) => (
           <div key={i} className="date-format-row">
-            <input placeholder="Column name" value={f.columnName}
+            <CloudscapeInput placeholder="Column name" value={f.columnName}
                    onChange={(e) => updateDateFieldFormat(i, { columnName: e.target.value })} />
-            <input placeholder="Source format" value={f.sourceFormat}
+            <CloudscapeInput placeholder="Source format" value={f.sourceFormat}
                    onChange={(e) => updateDateFieldFormat(i, { sourceFormat: e.target.value })} />
             <span className="muted">→</span>
-            <input placeholder="Display format" value={f.displayFormat}
+            <CloudscapeInput placeholder="Display format" value={f.displayFormat}
                    onChange={(e) => updateDateFieldFormat(i, { displayFormat: e.target.value })} />
-            <button type="button" className="icon-button" onClick={() => removeDateFieldFormat(i)} aria-label="Remove">×</button>
+            <CloudscapeButton type="button" className="icon-button" onClick={() => removeDateFieldFormat(i)} aria-label="Remove">×</CloudscapeButton>
           </div>
         ))}
-        <button type="button" className="secondary" onClick={addDateFieldFormat}>+ Add date field</button>
+        <CloudscapeButton type="button" className="secondary" onClick={addDateFieldFormat}>+ Add date field</CloudscapeButton>
 
         {canEditTemplates && (
           <>
-            <label className="checkbox-label">
-              <input type="checkbox" checked={isTemplate} onChange={(e) => setIsTemplate(e.target.checked)} />
+            <Checkbox checked={isTemplate} onChange={({ detail }) => setIsTemplate(detail.checked)}>
               Add to the shared Query Templates library
-            </label>
+            </Checkbox>
             {isTemplate && (
               <>
                 <label>
                   Description (shown to people who don't know SQL)
-                  <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)}
+                  <CloudscapeTextarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)}
                             placeholder="Looks up a customer's orders by their email address." />
                 </label>
 
-                <label>Who can see this template</label>
-                <div className="share-scope-toggle">
-                  <label className="radio-label">
-                    <input type="radio" checked={shareEveryone} onChange={() => setShareEveryone(true)} />
-                    Everyone
-                  </label>
-                  <label className="radio-label">
-                    <input type="radio" checked={!shareEveryone} onChange={() => setShareEveryone(false)} />
-                    Specific people
-                  </label>
-                </div>
+                <RadioGroup
+                  value={shareEveryone ? 'everyone' : 'specific'}
+                  onChange={({ detail }) => setShareEveryone(detail.value === 'everyone')}
+                  items={[
+                    { value: 'everyone', label: 'Everyone' },
+                    { value: 'specific', label: 'Specific people' },
+                  ]}
+                />
                 {!shareEveryone && (
                   <UserAutocomplete multi value={sharedWith} onChange={setSharedWith} placeholder="Type a username to share with…" />
                 )}
@@ -232,13 +240,13 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
           </>
         )}
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <Alert type="error">{error}</Alert>}
 
         <div className="modal-actions">
-          <button type="button" className="secondary" onClick={onClose}>Cancel</button>
-          <button type="submit">{isEditing ? 'Save changes' : 'Save'}</button>
+          <CloudscapeButton type="button" className="secondary" onClick={onClose}>Cancel</CloudscapeButton>
+          <CloudscapeButton type="submit">{isEditing ? 'Save changes' : 'Save'}</CloudscapeButton>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

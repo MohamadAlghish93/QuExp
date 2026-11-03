@@ -1,3 +1,8 @@
+import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
+import CloudscapeInput from '../components/CloudscapeInput.jsx'
+import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -131,7 +136,7 @@ export default function AlertsPage() {
 
           <label>
             Name
-            <input value={form.name} onChange={(e) => update('name', e.target.value)} required
+            <CloudscapeInput value={form.name} onChange={(e) => update('name', e.target.value)} required
                    placeholder="Failed orders" />
           </label>
 
@@ -144,48 +149,47 @@ export default function AlertsPage() {
 
           <label>
             SQL to check
-            <textarea rows={3} value={form.sql} onChange={(e) => update('sql', e.target.value)} required
+            <CloudscapeTextarea rows={3} value={form.sql} onChange={(e) => update('sql', e.target.value)} required
                       placeholder="SELECT * FROM orders WHERE status = 'failed'" />
           </label>
 
           <div className="form-row">
             <label className="grow">
               Alert when row count
-              <select value={form.condition} onChange={(e) => update('condition', e.target.value)}>
+              <CloudscapeSelect value={form.condition} onChange={(e) => update('condition', e.target.value)}>
                 {Object.entries(CONDITION_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
-              </select>
+              </CloudscapeSelect>
             </label>
             <label className="port-field">
               Threshold
-              <input type="number" value={form.threshold} onChange={(e) => update('threshold', e.target.value)} />
+              <CloudscapeInput type="number" value={form.threshold} onChange={(e) => update('threshold', e.target.value)} />
             </label>
           </div>
 
           <label>
             Check every (minutes)
-            <input type="number" min="1" value={form.checkIntervalMinutes}
+            <CloudscapeInput type="number" min="1" value={form.checkIntervalMinutes}
                    onChange={(e) => update('checkIntervalMinutes', e.target.value)} />
           </label>
 
           <label>
             Webhook URL (optional)
-            <input value={form.webhookUrl} onChange={(e) => update('webhookUrl', e.target.value)}
+            <CloudscapeInput value={form.webhookUrl} onChange={(e) => update('webhookUrl', e.target.value)}
                    placeholder="https://hooks.slack.com/services/…" />
           </label>
           <p className="field-hint hint-existing">
             If set, a JSON payload is POSTed here when the alert fires, in addition to the in-app notification.
           </p>
 
-          <label className="checkbox-label">
-            <input type="checkbox" checked={form.enabled} onChange={(e) => update('enabled', e.target.checked)} />
+          <Checkbox checked={form.enabled} onChange={({ detail }) => update('enabled', detail.checked)}>
             Enabled
-          </label>
+          </Checkbox>
 
           <div className="modal-actions">
-            {editing && <button type="button" className="secondary" onClick={resetForm}>Cancel</button>}
-            <button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save alert'}</button>
+            {editing && <CloudscapeButton type="button" className="secondary" onClick={resetForm}>Cancel</CloudscapeButton>}
+            <CloudscapeButton type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save alert'}</CloudscapeButton>
           </div>
         </form>
 
@@ -222,11 +226,11 @@ export default function AlertsPage() {
                     </p>
                   )}
                   <div className="favorite-card-actions">
-                    <button className="secondary" onClick={() => handleTest(a.id)} disabled={testingId === a.id}>
+                    <CloudscapeButton className="secondary" onClick={() => handleTest(a.id)} disabled={testingId === a.id}>
                       {testingId === a.id ? 'Testing…' : 'Test now'}
-                    </button>
-                    <button className="secondary" onClick={() => startEdit(a)}>Edit</button>
-                    <button className="secondary danger" onClick={() => handleDelete(a.id)}>Delete</button>
+                    </CloudscapeButton>
+                    <CloudscapeButton className="secondary" onClick={() => startEdit(a)}>Edit</CloudscapeButton>
+                    <CloudscapeButton className="secondary danger" onClick={() => handleDelete(a.id)}>Delete</CloudscapeButton>
                   </div>
                 </li>
               ))}

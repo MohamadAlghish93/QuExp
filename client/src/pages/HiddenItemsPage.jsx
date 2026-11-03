@@ -1,3 +1,4 @@
+import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 
@@ -54,9 +55,9 @@ export default function HiddenItemsPage() {
               </div>
               <p className="muted">{t.description || 'No description provided.'}</p>
               <div className="favorite-card-actions">
-                <button onClick={() => restore(t.id, api.unhideTemplate)} disabled={busyId === t.id}>
+                <CloudscapeButton onClick={() => restore(t.id, api.unhideTemplate)} disabled={busyId === t.id}>
                   {busyId === t.id ? 'Restoring…' : '↩ Unhide'}
-                </button>
+                </CloudscapeButton>
               </div>
             </li>
           ))}
@@ -74,9 +75,9 @@ export default function HiddenItemsPage() {
               </div>
               <p className="muted">Grouped by {t.groupByColumn}</p>
               <div className="favorite-card-actions">
-                <button onClick={() => restore(t.id, api.unhideDashboardItem)} disabled={busyId === t.id}>
+                <CloudscapeButton onClick={() => restore(t.id, api.unhideDashboardItem)} disabled={busyId === t.id}>
                   {busyId === t.id ? 'Restoring…' : '↩ Unhide'}
-                </button>
+                </CloudscapeButton>
               </div>
             </li>
           ))}

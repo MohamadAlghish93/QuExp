@@ -1,6 +1,11 @@
+import CloudscapeSelect from './CloudscapeSelect.jsx'
+import CloudscapeInput from './CloudscapeInput.jsx'
+import CloudscapeButton from './CloudscapeButton.jsx'
 import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext.jsx'
 import UserAutocomplete from './UserAutocomplete.jsx'
+import Alert from '@cloudscape-design/components/alert'
+import Modal from '@cloudscape-design/components/modal'
 
 // "@mention" a teammate on a saved query - the assign-a-favorite feature.
 export default function AssignFavoriteModal({ favorite, onAssign, onClose }) {
@@ -20,9 +25,14 @@ export default function AssignFavoriteModal({ favorite, onAssign, onClose }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-        <h3>Assign "{favorite.name}"</h3>
+    <Modal
+      visible
+      size="medium"
+      header={`Assign "${favorite.name}"`}
+      onDismiss={onClose}
+      closeAriaLabel="Close assignment dialog"
+    >
+      <form className="cloudscape-modal-content" onSubmit={handleSubmit}>
         <p className="muted">They'll get a notification now, and again each time it's due.</p>
 
         <label>
@@ -32,26 +42,26 @@ export default function AssignFavoriteModal({ favorite, onAssign, onClose }) {
 
         <label>
           Repeat every
-          <select value={repeatIntervalDays} onChange={(e) => setRepeatIntervalDays(e.target.value)}>
+          <CloudscapeSelect value={repeatIntervalDays} onChange={(e) => setRepeatIntervalDays(e.target.value)}>
             <option value={0}>Once (no repeat)</option>
             <option value={1}>Day</option>
             <option value={7}>Week</option>
             <option value={30}>Month</option>
-          </select>
+          </CloudscapeSelect>
         </label>
 
         <label>
           Note (optional)
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Check for anything unusual" />
+          <CloudscapeInput value={note} onChange={(e) => setNote(e.target.value)} placeholder="Check for anything unusual" />
         </label>
 
-        {error && <div className="error-banner">{error}</div>}
+        {error && <Alert type="error">{error}</Alert>}
 
         <div className="modal-actions">
-          <button type="button" className="secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" disabled={!assignee}>Assign</button>
+          <CloudscapeButton type="button" className="secondary" onClick={onClose}>Cancel</CloudscapeButton>
+          <CloudscapeButton type="submit" disabled={!assignee}>Assign</CloudscapeButton>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }
