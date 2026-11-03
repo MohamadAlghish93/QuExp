@@ -466,7 +466,7 @@ export default function PdfLayoutDesignerPage() {
               <section className="pdfd-card">
                 <div className="pdfd-title-row">
                   <h4 className="pdfd-title pdfd-ellipsis" title={selectedField.columnName}>Field · {selectedField.columnName}</h4>
-                  <CloudscapeButton className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</CloudscapeButton>
+                  <CloudscapeButton variant="icon" iconName="close" onClick={() => setSelection(null)} aria-label="Close" />
                 </div>
                 <label className="pdfd-label">Label
                   <CloudscapeInput value={selectedField.label || ''} onChange={(e) => updateField(selection.index, { label: e.target.value })} />
@@ -495,7 +495,7 @@ export default function PdfLayoutDesignerPage() {
                 <section className="pdfd-card">
                   <div className="pdfd-title-row">
                     <h4 className="pdfd-title pdfd-ellipsis">Table · {selectedTable.title || `Table ${ti + 1}`}</h4>
-                    <CloudscapeButton className="icon-button" onClick={() => setSelection(null)} aria-label="Close">×</CloudscapeButton>
+                    <CloudscapeButton variant="icon" iconName="close" onClick={() => setSelection(null)} aria-label="Close" />
                   </div>
 
                   <label className="pdfd-label">Title (optional)
@@ -540,9 +540,9 @@ export default function PdfLayoutDesignerPage() {
                           <CloudscapeInput value={c.header} onChange={(e) => updateColumn(ti, ci, { header: e.target.value })} placeholder="Header" />
                           <CloudscapeInput type="number" value={c.width ?? ''} placeholder="auto" onChange={(e) => updateColumn(ti, ci, { width: e.target.value === '' ? null : Number(e.target.value) })} />
                           <span className="pdfd-column-buttons">
-                            <CloudscapeButton className="icon-button" onClick={() => moveColumn(ti, ci, -1)} disabled={ci === 0} aria-label="Move up">↑</CloudscapeButton>
-                            <CloudscapeButton className="icon-button" onClick={() => moveColumn(ti, ci, 1)} disabled={ci === selectedTable.columns.length - 1} aria-label="Move down">↓</CloudscapeButton>
-                            <CloudscapeButton className="icon-button" onClick={() => removeColumn(ti, ci)} aria-label="Remove column">×</CloudscapeButton>
+                            <CloudscapeButton variant="icon" iconName="arrow-up" onClick={() => moveColumn(ti, ci, -1)} disabled={ci === 0} aria-label="Move up" />
+                            <CloudscapeButton variant="icon" iconName="arrow-down" onClick={() => moveColumn(ti, ci, 1)} disabled={ci === selectedTable.columns.length - 1} aria-label="Move down" />
+                            <CloudscapeButton variant="icon" iconName="close" onClick={() => removeColumn(ti, ci)} aria-label="Remove column" />
                           </span>
                         </div>
                       ))}

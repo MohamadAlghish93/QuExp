@@ -7,6 +7,7 @@ export default function CloudscapeButton({
   onClick,
   'aria-label': ariaLabel,
   variant,
+  wrapText = false,
   ...props
 }) {
   const resolvedVariant = variant || (className?.split(/\s+/).includes('link-button') ? 'link' : type === 'submit' ? 'primary' : 'normal')
@@ -15,6 +16,7 @@ export default function CloudscapeButton({
     <Button
       {...props}
       variant={resolvedVariant}
+      wrapText={wrapText}
       className={className}
       ariaLabel={ariaLabel}
       formAction={type === 'submit' ? 'submit' : undefined}

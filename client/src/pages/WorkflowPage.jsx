@@ -1,6 +1,7 @@
 import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
 import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
 import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Icon from '@cloudscape-design/components/icon'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -9,8 +10,13 @@ import { buildStages, stageName } from '../utils/workflowStages.js'
 import BusyOverlay from '../components/BusyOverlay.jsx'
 
 const ACTION_LABEL = {
-  Started: '▶ Started', Forward: '➡ Moved forward', Back: '↩ Sent back', Detached: '✂ Detached',
-  Passed: '✔ Passed', Approved: '✅ Approved', Revoked: '🚫 Approval revoked',
+  Started: { icon: 'play', text: 'Started' },
+  Forward: { icon: 'arrow-right', text: 'Moved forward' },
+  Back: { icon: 'undo', text: 'Sent back' },
+  Detached: { icon: 'remove', text: 'Detached' },
+  Passed: { icon: 'status-positive', text: 'Passed' },
+  Approved: { icon: 'status-positive', text: 'Approved' },
+  Revoked: { icon: 'status-negative', text: 'Approval revoked' },
 }
 
 // Your workflow inbox: templates waiting on you, your own templates in flight, and a place to
@@ -164,7 +170,9 @@ export default function WorkflowPage() {
         <div className="favorite-card-header">
           <strong>{item.name}</strong>
           <span className="template-badges">
-            <span className={item.isOfficial ? 'badge' : 'badge badge-pending'}>{item.isOfficial ? '✓ Official' : '✎ Draft'}</span>
+            <span className={item.isOfficial ? 'badge' : 'badge badge-pending'}>
+              <Icon name={item.isOfficial ? 'status-positive' : 'edit'} /> {item.isOfficial ? 'Official' : 'Draft'}
+            </span>
             <span className="badge badge-muted">{item.workflowName}</span>
           </span>
         </div>
@@ -176,7 +184,7 @@ export default function WorkflowPage() {
         {item.approvals.length > 0 && (
           <ul className="wf-approvals">
             {item.approvals.map((a) => (
-              <li key={a.stepIndex}>✅ “{a.stepName}” approved by @{a.approvedByUsername} · {new Date(a.approvedAtUtc).toLocaleString()}</li>
+              <li key={a.stepIndex}><Icon name="status-positive" /> “{a.stepName}” approved by @{a.approvedByUsername} · {new Date(a.approvedAtUtc).toLocaleString()}</li>
             ))}
           </ul>
         )}
@@ -189,7 +197,7 @@ export default function WorkflowPage() {
             {entries ? 'Hide history' : 'History'}
           </CloudscapeButton>
           {(isAdmin || item.ownerUsername === username) && (
-            <CloudscapeButton className="link-button danger" onClick={() => detach(item)}>Detach from workflow</CloudscapeButton>
+            <CloudscapeButton className="link-button danger" iconName="remove" onClick={() => detach(item)}>Detach from workflow</CloudscapeButton>
           )}
         </div>
         {sqlOpenId === item.favoriteId && <pre className="favorite-sql">{item.sql}</pre>}
@@ -199,7 +207,11 @@ export default function WorkflowPage() {
           <ul className="wf-history">
             {entries.map((h) => (
               <li key={h.id}>
-                <span className="wf-history-action">{ACTION_LABEL[h.action] || h.action}</span>
+                <span className="wf-history-action">
+                  {ACTION_LABEL[h.action]
+                    ? <><Icon name={ACTION_LABEL[h.action].icon} /> {ACTION_LABEL[h.action].text}</>
+                    : h.action}
+                </span>
                 {['Forward', 'Back'].includes(h.action) ? ` ${h.fromStepName} → ${h.toStepName}` : ` “${h.toStepName}”`}
                 <span className="muted"> · @{h.movedByUsername} · {new Date(h.movedAtUtc).toLocaleString()}</span>
                 {h.note && <div className="wf-history-note">“{h.note}”</div>}
@@ -216,24 +228,24 @@ export default function WorkflowPage() {
 
             <div className="wf-actions-group">
               {item.approvableSteps.map((i) => (
-                <CloudscapeButton key={`a${i}`} className="wf-approve-button" onClick={() => approveStep(item, i)} disabled={!!busyMessage}>
-                  ✅ Approve “{item.steps[i].name}”
+                <CloudscapeButton key={`a${i}`} className="wf-approve-button" iconName="status-positive" onClick={() => approveStep(item, i)} disabled={!!busyMessage}>
+                  Approve “{item.steps[i].name}”
                 </CloudscapeButton>
               ))}
 
               {/* Single-step stage: one button moves it on. Parallel stage: each group passes its own step. */}
               {stage.length === 1 && !isLastStage && item.actionableSteps.includes(stage[0]) && (
-                <CloudscapeButton onClick={() => moveForward(item, nextName)}
+                <CloudscapeButton iconName="arrow-right" onClick={() => moveForward(item, nextName)}
                         disabled={!!busyMessage || (item.steps[stage[0]].requiresApproval && !approved(stage[0]))}
                         title={item.steps[stage[0]].requiresApproval && !approved(stage[0]) ? 'Approve this step first' : undefined}>
-                  ➡ Move to “{nextName}”
+                  Move to “{nextName}”
                 </CloudscapeButton>
               )}
               {stage.length > 1 && item.actionableSteps.map((i) => (
-                <CloudscapeButton key={`p${i}`} onClick={() => passStep(item, i)}
+                <CloudscapeButton key={`p${i}`} iconName="status-positive" onClick={() => passStep(item, i)}
                         disabled={!!busyMessage || (item.steps[i].requiresApproval && !approved(i))}
                         title={item.steps[i].requiresApproval && !approved(i) ? 'Approve this step first' : undefined}>
-                  ✔ Pass “{item.steps[i].name}”
+                  Pass “{item.steps[i].name}”
                 </CloudscapeButton>
               ))}
             </div>
@@ -247,7 +259,7 @@ export default function WorkflowPage() {
                       <option key={si} value={si}>{si + 1}. {stageName(item.steps, st)}</option>
                     ))}
                   </CloudscapeSelect>
-                  <CloudscapeButton className="secondary" onClick={() => sendBack(item, stages)} disabled={!!busyMessage}>↩ Send back</CloudscapeButton>
+                  <CloudscapeButton className="secondary" iconName="undo" onClick={() => sendBack(item, stages)} disabled={!!busyMessage}>Send back</CloudscapeButton>
                 </span>
               </div>
             )}
@@ -255,8 +267,8 @@ export default function WorkflowPage() {
             {item.canRevoke && (
               <div className="wf-actions-group">
                 {stage.filter(approved).map((i) => (
-                  <CloudscapeButton key={`r${i}`} className="secondary wf-revoke-button" onClick={() => revokeApproval(item, i)} disabled={!!busyMessage}>
-                    🚫 Revoke approval “{item.steps[i].name}” <span className="muted">(Admin)</span>
+                  <CloudscapeButton key={`r${i}`} className="secondary wf-revoke-button" iconName="status-negative" onClick={() => revokeApproval(item, i)} disabled={!!busyMessage}>
+                    Revoke approval “{item.steps[i].name}” <span className="muted">(Admin)</span>
                   </CloudscapeButton>
                 ))}
               </div>
@@ -313,7 +325,7 @@ export default function WorkflowPage() {
                   <option value="">Choose a workflow…</option>
                   {definitions.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.steps.length} steps)</option>)}
                 </CloudscapeSelect>
-                <CloudscapeButton onClick={() => startWorkflow(t)} disabled={!!busyMessage}>🔀 Start workflow</CloudscapeButton>
+                <CloudscapeButton iconName="play" onClick={() => startWorkflow(t)} disabled={!!busyMessage}>Start workflow</CloudscapeButton>
               </div>
               {t.approvalStatus === 'Approved' && (
                 <p className="field-hint hint-new">Starting a workflow puts this template back to draft until it reaches an official step again.</p>

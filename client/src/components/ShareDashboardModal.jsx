@@ -59,7 +59,7 @@ export default function ShareDashboardModal({ item, onShared, onClose }) {
               {item.sharedWithUsernames.map((u) => (
                 <span key={u} className="tag tag-removable">
                   @{u}
-                  <CloudscapeButton type="button" onClick={() => handleUnshare(u)} aria-label={`Unshare with ${u}`}>×</CloudscapeButton>
+                  <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => handleUnshare(u)} aria-label={`Unshare with ${u}`} />
                 </span>
               ))}
             </div>

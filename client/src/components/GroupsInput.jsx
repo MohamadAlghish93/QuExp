@@ -33,7 +33,7 @@ export default function GroupsInput({ value, onChange, suggestions = [] }) {
         {value.map((g) => (
           <span key={g} className="tag tag-removable">
             {g}
-            <CloudscapeButton type="button" onClick={() => onChange(value.filter((x) => x !== g))} aria-label={`Remove group ${g}`}>×</CloudscapeButton>
+            <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => onChange(value.filter((x) => x !== g))} aria-label={`Remove group ${g}`} />
           </span>
         ))}
         <CloudscapeInput

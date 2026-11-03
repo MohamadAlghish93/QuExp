@@ -62,7 +62,7 @@ export default function UserAutocomplete({ value, onChange, multi = false, exclu
           {selectedList.map((u) => (
             <span key={u} className="tag tag-removable">
               @{u}
-              <CloudscapeButton type="button" onClick={() => removeChip(u)} aria-label={`Remove ${u}`}>×</CloudscapeButton>
+              <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => removeChip(u)} aria-label={`Remove ${u}`} />
             </span>
           ))}
         </div>

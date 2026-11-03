@@ -71,14 +71,14 @@ export default function DashboardPage() {
                 <strong title={item.title}>{item.title}</strong>
                 {item.isOwnedByMe ? (
                   <div className="dashboard-card-actions">
-                    <CloudscapeButton className="link-button" onClick={() => setSharingItem(item)}>share</CloudscapeButton>
-                    <CloudscapeButton className="link-button danger" onClick={() => handleUnpin(item.id)}>unpin</CloudscapeButton>
+                    <CloudscapeButton className="link-button" onClick={() => setSharingItem(item)}>Share</CloudscapeButton>
+                    <CloudscapeButton className="link-button danger" onClick={() => handleUnpin(item.id)}>Unpin</CloudscapeButton>
                   </div>
                 ) : (
                   <div className="dashboard-card-actions">
                     <span className="badge badge-muted">shared by @{item.ownerUsername}</span>
                     <CloudscapeButton className="link-button danger" onClick={() => handleHide(item.id)} title="Hide this from your dashboard only">
-                      hide
+                      Hide
                     </CloudscapeButton>
                   </div>
                 )}

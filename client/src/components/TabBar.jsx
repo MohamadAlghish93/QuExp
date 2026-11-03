@@ -41,16 +41,15 @@ export default function TabBar({ tabs, activeId, onSelect, onClose, onAdd, onRen
           )}
           {tabs.length > 1 && (
             <CloudscapeButton
-              className="tab-close"
+              variant="icon"
+              iconName="close"
               onClick={(e) => { e.stopPropagation(); onClose(tab.id) }}
               aria-label={`Close ${tab.label}`}
-            >
-              ×
-            </CloudscapeButton>
+            />
           )}
         </div>
       ))}
-      <CloudscapeButton className="tab-add" onClick={onAdd} aria-label="New query tab">+</CloudscapeButton>
+      <CloudscapeButton variant="icon" iconName="add-plus" onClick={onAdd} aria-label="New query tab" />
     </div>
   )
 }

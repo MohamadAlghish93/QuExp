@@ -209,7 +209,7 @@ select, input, textarea {
 .favorite-sql { background: #f7f7f9; padding: 8px 10px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
 .tag-list { display: flex; gap: 6px; margin: 6px 0; }
 .tag { background: #f0f0f0; padding: 2px 8px; border-radius: 10px; font-size: 11px; color: #555; }
-.favorite-card-actions { display: flex; gap: 8px; margin-top: 8px; }
+.favorite-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
 /* ---- Favorites layout with category sidebar ---- */
 .favorites-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: start; }
@@ -314,7 +314,7 @@ select, input, textarea {
 .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
 .dashboard-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; }
-.dashboard-card-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dashboard-card-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .dashboard-card-sub { font-size: 12px; margin: 2px 0 10px; }
 .link-button.danger { color: #d33; }
 
@@ -339,8 +339,8 @@ select, input, textarea {
 }
 .bell-button:hover { background: #f0f1f6; color: var(--ink); }
 .bell-badge {
-  position: absolute; top: -2px; right: -2px; background: #d33; color: #fff;
-  font-size: 10px; border-radius: 8px; padding: 1px 5px; line-height: 1.3;
+  position: absolute; top: 7px; right: 7px; width: 7px; height: 7px;
+  border: 1px solid #fff; border-radius: 50%; background: #d13212; pointer-events: none;
 }
 .bell-dropdown {
   position: absolute; right: 0; top: 32px; width: 320px; max-height: 400px; overflow-y: auto;
@@ -365,7 +365,6 @@ select, input, textarea {
   padding: 16px; transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .template-card:hover { box-shadow: 0 6px 20px rgba(20, 20, 40, 0.08); border-color: #d7dbe6; }
-.template-card .favorite-card-header { padding-right: 26px; } /* room for the delete icon */
 .template-description { font-size: 13px; color: #444; margin: 6px 0 10px; }
 .template-result { margin-top: 14px; }
 .template-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -380,14 +379,10 @@ select, input, textarea {
 .template-result .result-grid tbody tr:hover { background: #eef2ff; }
 .template-result .grid-wrapper { max-height: 420px; }
 
-/* Delete tucked into the corner as a subtle icon, not a full-width red button
-   competing with Run for attention - it only needs to be findable, not prominent. */
 .template-delete-icon {
-  position: absolute; top: 12px; right: 12px; background: none; border: none; color: #c7cad3;
-  width: 26px; height: 26px; border-radius: 8px; cursor: pointer; font-size: 13px;
-  display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, color 0.15s ease;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
-.template-delete-icon:hover { background: #fdecea; color: #c0392b; }
 
 .template-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
 .visibility-chip {
@@ -468,7 +463,7 @@ select, input, textarea {
 .nav-dropdown-menu a.active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
 
 /* ---- Dashboard card share action ---- */
-.dashboard-card-actions { display: flex; gap: 10px; }
+.dashboard-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 
 /* ---- User autocomplete (assignee/share/access pickers) ---- */
 .user-autocomplete { position: relative; }
@@ -779,8 +774,9 @@ select, input, textarea {
 .tpl-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 .tpl-count { font-size: 12px; margin: 0 0 8px; }
 
-.template-card-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 6px 10px; padding-right: 26px; }
-.template-name { margin: 0; font-size: 16px; line-height: 1.3; }
+.template-card-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.template-name { flex: 1 1 160px; min-width: 0; margin: 0; font-size: 16px; line-height: 1.3; }
+.template-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
 .template-needs { font-size: 12px; color: #444; background: #f6f7fb; border-radius: 8px; padding: 6px 10px; margin: 0 0 12px; }
 
 .template-run-button {
@@ -840,9 +836,18 @@ body {
 .app-header-notifications {
   position: absolute;
   top: 50%;
-  right: 150px;
+  right: 12px;
   z-index: 1003;
   transform: translateY(-50%);
+}
+
+.app-header header[class*="awsui_top-navigation_"] > [class*="awsui_padding-box_"] {
+  padding-inline-end: 56px;
+}
+
+.app-header-notifications [class*="awsui_button_"] {
+  --awsui-style-color-default-8i8exb: #545b64;
+  --awsui-style-color-hover-8i8exb: #0972d3;
 }
 
 .app-content {
@@ -865,9 +870,8 @@ body {
 }
 
 @media (max-width: 640px) {
-  .app-header-notifications {
-    right: 112px;
-  }
+  .app-header-notifications { right: 8px; }
+  .app-header header[class*="awsui_top-navigation_"] > [class*="awsui_padding-box_"] { padding-inline-end: 48px; }
 
   .app-content {
     padding: 16px;

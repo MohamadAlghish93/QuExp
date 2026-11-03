@@ -125,6 +125,7 @@ export default function NotificationBell() {
           ariaLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
           onClick={loadNotifications}
         />
+        {unreadCount > 0 && <span className="bell-badge" aria-hidden="true" />}
       </Popover>
     </div>
   )

@@ -307,7 +307,7 @@ export default function FavoritesPage() {
           {category && (
             <span className="active-filter">
               {category}
-              <CloudscapeButton type="button" onClick={() => setCategory('')} aria-label="Clear category filter">×</CloudscapeButton>
+              <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => setCategory('')} aria-label="Clear category filter" />
             </span>
           )}
         </div>

@@ -23,8 +23,13 @@ export default function NavDropdown({ label, items }) {
 
   return (
     <div className="nav-dropdown" ref={containerRef}>
-      <CloudscapeButton className={isActive ? 'nav-dropdown-trigger active' : 'nav-dropdown-trigger'} onClick={() => setOpen((o) => !o)}>
-        {label} ▾
+      <CloudscapeButton
+        className={isActive ? 'nav-dropdown-trigger active' : 'nav-dropdown-trigger'}
+        iconName="angle-down"
+        iconAlign="right"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {label}
       </CloudscapeButton>
       {open && (
         <div className="nav-dropdown-menu">

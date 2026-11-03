@@ -1,6 +1,7 @@
 import CloudscapeInput from '../components/CloudscapeInput.jsx'
 import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import Checkbox from '@cloudscape-design/components/checkbox'
+import Icon from '@cloudscape-design/components/icon'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import BusyOverlay from '../components/BusyOverlay.jsx'
@@ -123,7 +124,7 @@ export default function WorkflowDesignerPage() {
               ))}
             </ul>
           )}
-          <CloudscapeButton className="secondary" onClick={() => setDraft(NEW_WORKFLOW())}>+ New design</CloudscapeButton>
+          <CloudscapeButton className="secondary" iconName="add-plus" onClick={() => setDraft(NEW_WORKFLOW())}>New design</CloudscapeButton>
         </div>
 
         <div className="pdf-designer-main">
@@ -145,7 +146,7 @@ export default function WorkflowDesignerPage() {
                     onChange={({ detail }) => updateStep(i, { makesOfficial: detail.checked })}
                     nativeInputAttributes={{ title: 'This step makes the template official' }}
                   >
-                    Official 🏁
+                    <><Icon name="flag" /> Official</>
                   </Checkbox>
                   <Checkbox
                     className="checkbox-label"
@@ -153,7 +154,7 @@ export default function WorkflowDesignerPage() {
                     onChange={({ detail }) => updateStep(i, { requiresApproval: detail.checked })}
                     nativeInputAttributes={{ title: 'Shows an Approve button on this step. It must be approved before it can be passed, and only an Admin can revoke the approval.' }}
                   >
-                    Needs approval ✅
+                    <><Icon name="status-pending" /> Needs approval</>
                   </Checkbox>
                   <Checkbox
                     className="checkbox-label"
@@ -166,19 +167,19 @@ export default function WorkflowDesignerPage() {
                         : 'Runs at the same time as the step above; both must be passed before moving on',
                     }}
                   >
-                    In parallel with step above ⇉
+                    In parallel with step above
                   </Checkbox>
                   <span className="wf-design-controls">
-                    <CloudscapeButton className="icon-button" onClick={() => moveStep(i, -1)} disabled={i === 0} aria-label="Move step up">↑</CloudscapeButton>
-                    <CloudscapeButton className="icon-button" onClick={() => moveStep(i, 1)} disabled={i === draft.steps.length - 1} aria-label="Move step down">↓</CloudscapeButton>
-                    <CloudscapeButton className="icon-button" onClick={() => removeStep(i)} disabled={draft.steps.length <= 2} aria-label="Remove step">×</CloudscapeButton>
+                    <CloudscapeButton variant="icon" iconName="arrow-up" onClick={() => moveStep(i, -1)} disabled={i === 0} aria-label="Move step up" />
+                    <CloudscapeButton variant="icon" iconName="arrow-down" onClick={() => moveStep(i, 1)} disabled={i === draft.steps.length - 1} aria-label="Move step down" />
+                    <CloudscapeButton variant="icon" iconName="close" onClick={() => removeStep(i)} disabled={draft.steps.length <= 2} aria-label="Remove step" />
                   </span>
                 </li>
               ))}
             </ol>
             <datalist id="wf-groups">{groups.map((g) => <option key={g} value={g} />)}</datalist>
 
-            <CloudscapeButton className="secondary" onClick={addStep}>+ Add step</CloudscapeButton>
+            <CloudscapeButton className="secondary" iconName="add-plus" onClick={addStep}>Add step</CloudscapeButton>
             {officialCount === 0 && <p className="field-hint hint-new">Flag at least one step as official, or the template can never be published.</p>}
             <p className="field-hint hint-existing">
               <strong>Needs approval</strong> adds an Approve button to the step (it must be approved before it can be passed). If that step is also
@@ -194,8 +195,8 @@ export default function WorkflowDesignerPage() {
             </div>
 
             <div className="toolbar" style={{ marginTop: 12 }}>
-              <CloudscapeButton onClick={save} disabled={!!busyMessage}>💾 Save workflow</CloudscapeButton>
-              {draft.id && <CloudscapeButton className="secondary danger" onClick={remove} disabled={!!busyMessage}>🗑 Delete</CloudscapeButton>}
+              <CloudscapeButton variant="primary" onClick={save} disabled={!!busyMessage}>Save workflow</CloudscapeButton>
+              {draft.id && <CloudscapeButton className="secondary danger" iconName="remove" onClick={remove} disabled={!!busyMessage}>Delete</CloudscapeButton>}
             </div>
           </div>
         </div>

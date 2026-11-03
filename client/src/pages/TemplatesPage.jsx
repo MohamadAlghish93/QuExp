@@ -245,7 +245,7 @@ export default function TemplatesPage() {
             <CloudscapeButton className="link-button" onClick={() => handleExport(t)} disabled={exportingId === t.id}>
               {exportingId === t.id ? 'Preparing file…' : '⬇ Download everything (CSV)'}
             </CloudscapeButton>
-            <CloudscapeButton className="link-button" onClick={() => closeResult(t.id)}>✕ Close</CloudscapeButton>
+            <CloudscapeButton className="link-button" iconName="close" onClick={() => closeResult(t.id)}>Close</CloudscapeButton>
           </div>
         </div>
 
@@ -298,10 +298,6 @@ export default function TemplatesPage() {
 
     return (
       <div key={t.id} className={result?.columns || result?.error ? 'template-card template-card-expanded' : 'template-card'}>
-        {canEditTemplates && (
-          <CloudscapeButton className="template-delete-icon" onClick={() => handleDelete(t.id)} title="Remove template" aria-label={`Remove ${t.name}`}>🗑</CloudscapeButton>
-        )}
-
         <div className="template-card-top">
           <h3 className="template-name">{t.name}</h3>
           <div className="template-badges">
@@ -314,6 +310,16 @@ export default function TemplatesPage() {
             {t.approvalStatus === 'Rejected' && <span className="badge badge-rejected">✕ Rejected</span>}
             <span className="badge">{t.category}</span>
           </div>
+          {canEditTemplates && (
+            <CloudscapeButton
+              className="template-delete-icon"
+              variant="icon"
+              iconName="remove"
+              onClick={() => handleDelete(t.id)}
+              title="Remove template"
+              aria-label={`Remove ${t.name}`}
+            />
+          )}
         </div>
 
         <p className="template-description">

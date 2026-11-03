@@ -1,4 +1,5 @@
 import { buildStages } from '../utils/workflowStages.js'
+import Icon from '@cloudscape-design/components/icon'
 
 // Progress view of a workflow. Each STAGE is a column; steps that run in parallel are stacked inside
 // it. Finished stages are ticked, the current one is highlighted, and within the current stage each
@@ -20,9 +21,9 @@ export default function WorkflowStepper({ steps, currentStageIndex = -1, passedS
                 <div key={i} className={`wf-step wf-step-${passed ? 'done' : state}`}>
                   <span className="wf-step-pill"
                         title={step.makesOfficial ? 'This step makes the template official' : undefined}>
-                    {passed ? '✓' : i + 1} {step.name}
-                    {step.makesOfficial ? ' 🏁' : ''}
-                    {step.requiresApproval ? (approval ? ' ✅' : ' ☑') : ''}
+                    {passed ? <Icon name="status-positive" /> : i + 1} {step.name}
+                    {step.makesOfficial && <> <Icon name="flag" /></>}
+                    {step.requiresApproval && <> <Icon name={approval ? 'status-positive' : 'status-pending'} /></>}
                   </span>
                   <span className="wf-step-group">
                     {step.responsibleGroup || 'owner'}

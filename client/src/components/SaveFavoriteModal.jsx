@@ -167,7 +167,7 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
             {tags.map((t) => (
               <span key={t} className="tag tag-removable">
                 {t}
-                <CloudscapeButton type="button" onClick={() => removeTag(t)} aria-label={`Remove tag ${t}`}>×</CloudscapeButton>
+                <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => removeTag(t)} aria-label={`Remove tag ${t}`} />
               </span>
             ))}
             <CloudscapeInput
@@ -206,7 +206,7 @@ export default function SaveFavoriteModal({ initialValues, onSave, onClose }) {
             <span className="muted">→</span>
             <CloudscapeInput placeholder="Display format" value={f.displayFormat}
                    onChange={(e) => updateDateFieldFormat(i, { displayFormat: e.target.value })} />
-            <CloudscapeButton type="button" className="icon-button" onClick={() => removeDateFieldFormat(i)} aria-label="Remove">×</CloudscapeButton>
+            <CloudscapeButton type="button" variant="icon" iconName="close" onClick={() => removeDateFieldFormat(i)} aria-label="Remove" />
           </div>
         ))}
         <CloudscapeButton type="button" className="secondary" onClick={addDateFieldFormat}>+ Add date field</CloudscapeButton>
