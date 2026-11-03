@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import BusyOverlay from '../components/BusyOverlay.jsx'
+import WorkflowStepper from '../components/WorkflowStepper.jsx'
 
 const NEW_WORKFLOW = () => ({
   id: null,
   name: '',
   steps: [
-    { name: 'Draft', responsibleGroup: '', makesOfficial: false },
-    { name: 'Review', responsibleGroup: '', makesOfficial: false },
-    { name: 'Approved', responsibleGroup: '', makesOfficial: true },
+    { name: 'Draft', responsibleGroup: '', makesOfficial: false, requiresApproval: false, parallelWithPrevious: false },
+    { name: 'Review', responsibleGroup: '', makesOfficial: false, requiresApproval: false, parallelWithPrevious: false },
+    { name: 'Approval', responsibleGroup: '', makesOfficial: true, requiresApproval: true, parallelWithPrevious: false },
   ],
 })
 
@@ -58,7 +59,7 @@ export default function WorkflowDesignerPage() {
   }
 
   function addStep() {
-    setDraft((d) => ({ ...d, steps: [...d.steps, { name: '', responsibleGroup: '', makesOfficial: false }] }))
+    setDraft((d) => ({ ...d, steps: [...d.steps, { name: '', responsibleGroup: '', makesOfficial: false, requiresApproval: false, parallelWithPrevious: false }] }))
   }
 
   async function run(busyText, action, successText) {
@@ -135,9 +136,18 @@ export default function WorkflowDesignerPage() {
                   <input placeholder="Step name" value={step.name} onChange={(e) => updateStep(i, { name: e.target.value })} />
                   <input placeholder="Responsible group (empty = owner)" value={step.responsibleGroup}
                          list="wf-groups" onChange={(e) => updateStep(i, { responsibleGroup: e.target.value })} />
-                  <label className="checkbox-label" title="Reaching this step makes the template official">
+                  <label className="checkbox-label" title="This step makes the template official">
                     <input type="checkbox" checked={step.makesOfficial} onChange={(e) => updateStep(i, { makesOfficial: e.target.checked })} />
                     Official 🏁
+                  </label>
+                  <label className="checkbox-label" title="Shows an Approve button on this step. It must be approved before it can be passed, and only an Admin can revoke the approval.">
+                    <input type="checkbox" checked={!!step.requiresApproval} onChange={(e) => updateStep(i, { requiresApproval: e.target.checked })} />
+                    Needs approval ✅
+                  </label>
+                  <label className="checkbox-label" title={i === 0 ? 'The first step has nothing above it to run alongside' : 'Runs at the same time as the step above; both must be passed before moving on'}>
+                    <input type="checkbox" disabled={i === 0} checked={i > 0 && !!step.parallelWithPrevious}
+                           onChange={(e) => updateStep(i, { parallelWithPrevious: e.target.checked })} />
+                    In parallel with step above ⇉
                   </label>
                   <span className="wf-design-controls">
                     <button className="icon-button" onClick={() => moveStep(i, -1)} disabled={i === 0} aria-label="Move step up">↑</button>
@@ -151,19 +161,17 @@ export default function WorkflowDesignerPage() {
 
             <button className="secondary" onClick={addStep}>+ Add step</button>
             {officialCount === 0 && <p className="field-hint hint-new">Flag at least one step as official, or the template can never be published.</p>}
+            <p className="field-hint hint-existing">
+              <strong>Needs approval</strong> adds an Approve button to the step (it must be approved before it can be passed). If that step is also
+              <strong> Official</strong>, the approval is what publishes the template - and only an Admin can revoke it.
+              <strong> In parallel</strong> steps run at the same time: each group passes its own, and the template moves on once all are passed.
+            </p>
             {officialCount > 1 && <p className="field-hint hint-existing">{officialCount} steps are flagged official - the template goes live at the first one it reaches.</p>}
             {groups.length === 0 && <p className="field-hint hint-new">No user groups exist yet. Assign users to groups on the Users page so steps can be handed to them.</p>}
 
             <div className="pdf-designer-panel wf-preview">
               <h4 className="pdf-panel-title">Preview</h4>
-              <div className="wf-stepper">
-                {draft.steps.map((s, i) => (
-                  <span key={i} className="wf-step wf-step-todo">
-                    <span className="wf-step-pill">{i + 1} {s.name || '…'}{s.makesOfficial ? ' 🏁' : ''}</span>
-                    <span className="wf-step-group">{s.responsibleGroup || 'owner'}</span>
-                  </span>
-                ))}
-              </div>
+              <WorkflowStepper steps={draft.steps.map((st) => ({ ...st, name: st.name || '…' }))} />
             </div>
 
             <div className="toolbar" style={{ marginTop: 12 }}>

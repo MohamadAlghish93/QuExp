@@ -20,11 +20,31 @@ public class WorkflowStep
 {
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>User group (User.GroupName) responsible for this step. Empty = the template's owner.</summary>
+    /// <summary>User group (any of the user's Groups) responsible for this step. Empty = the template's owner.</summary>
     public string ResponsibleGroup { get; set; } = string.Empty;
 
-    /// <summary>Reaching this step makes the template Official. Leave false for review/draft stages.</summary>
+    /// <summary>
+    /// This step makes the template official. Without RequiresApproval that happens as soon as the
+    /// template reaches the step; with it, it happens when someone clicks Approve on the step.
+    /// </summary>
     public bool MakesOfficial { get; set; }
+
+    /// <summary>Shows an Approve button on this step. It must be approved before the step can be passed,
+    /// and only an Admin can revoke the approval afterwards.</summary>
+    public bool RequiresApproval { get; set; }
+
+    /// <summary>Runs at the same time as the step above it (a parallel fork). Every step in the group
+    /// must be passed before the template moves on (the join). False = a normal sequential step.</summary>
+    public bool ParallelWithPrevious { get; set; }
+}
+
+/// <summary>A recorded sign-off on a workflow step: who approved it and when.</summary>
+public class WorkflowApproval
+{
+    public int StepIndex { get; set; }
+    public string StepName { get; set; } = string.Empty;
+    public string ApprovedByUsername { get; set; } = string.Empty;
+    public DateTime ApprovedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 /// <summary>One recorded move of a template through its workflow. Step names are snapshotted
@@ -33,7 +53,7 @@ public class WorkflowHistoryEntry
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid FavoriteId { get; set; }
-    public string Action { get; set; } = string.Empty; // Started | Forward | Back | Detached
+    public string Action { get; set; } = string.Empty; // Started | Passed | Forward | Back | Approved | Revoked | Detached
     public int FromStepIndex { get; set; }
     public int ToStepIndex { get; set; }
     public string FromStepName { get; set; } = string.Empty;

@@ -171,6 +171,8 @@ public class FavoritesController : ControllerBase
             WorkflowName = existing?.WorkflowName,
             WorkflowSteps = existing?.WorkflowSteps ?? new List<WorkflowStep>(),
             WorkflowStepIndex = existing?.WorkflowStepIndex ?? 0,
+            WorkflowPassedSteps = existing?.WorkflowPassedSteps ?? new List<int>(),
+            WorkflowApprovals = existing?.WorkflowApprovals ?? new List<WorkflowApproval>(),
             CreatedAtUtc = existing?.CreatedAtUtc ?? DateTime.UtcNow
         };
 

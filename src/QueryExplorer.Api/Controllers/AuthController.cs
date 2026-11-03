@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using QueryExplorer.Application.DTOs;
 using QueryExplorer.Application.Interfaces;
 using QueryExplorer.Application.Security;
-using QueryExplorer.Domain.Entities;
 using System.Security.Claims;
 
 namespace QueryExplorer.Api.Controllers;
@@ -21,7 +20,7 @@ public class AuthController : ControllerBase
         _jwt = jwt;
     }
 
-    /// <summary>Public login endpoint. A default admin/Admin123! account is seeded on first run.</summary>
+    /// <summary>Public login endpoint. A default admin/Admin123! account is seeded on first run.
     /// Creating additional users is done from the Users page (Admin role required), not here.</summary>
     [HttpPost("login")]
     [AllowAnonymous]

@@ -75,6 +75,33 @@ public class SqliteUserRepository : IUserRepository
             catch (SqliteException) { /* column already exists */ }
         }
 
+        // A user can now be in several groups, stored as a JSON list in Groups.
+        try
+        {
+            using var alterCmd = conn.CreateCommand();
+            alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN Groups TEXT NOT NULL DEFAULT '[]';";
+            alterCmd.ExecuteNonQuery();
+        }
+        catch (SqliteException) { /* column already exists */ }
+
+        // One-time move of the old single GroupName into Groups. GroupName is blanked afterwards so
+        // clearing someone's groups later can't bring the old value back on the next startup.
+        var legacy = new List<(string Username, string Group)>();
+        using (var legacyQuery = conn.CreateCommand())
+        {
+            legacyQuery.CommandText = "SELECT Username, GroupName FROM Users WHERE GroupName IS NOT NULL AND GroupName != '';";
+            using var reader = legacyQuery.ExecuteReader();
+            while (reader.Read()) legacy.Add((reader.GetString(0), reader.GetString(1)));
+        }
+        foreach (var (legacyUsername, legacyGroup) in legacy)
+        {
+            using var move = conn.CreateCommand();
+            move.CommandText = "UPDATE Users SET Groups = $groups, GroupName = NULL WHERE Username = $username;";
+            move.Parameters.AddWithValue("$groups", JsonSerializer.Serialize(new[] { legacyGroup }));
+            move.Parameters.AddWithValue("$username", legacyUsername);
+            move.ExecuteNonQuery();
+        }
+
         using var countCmd = conn.CreateCommand();
         countCmd.CommandText = "SELECT COUNT(*) FROM Users";
         var userCount = Convert.ToInt64(countCmd.ExecuteScalar());
@@ -86,8 +113,8 @@ public class SqliteUserRepository : IUserRepository
             var (hash, salt) = PasswordHasher.Hash("Admin123!");
             using var seedCmd = conn.CreateCommand();
             seedCmd.CommandText = """
-                INSERT INTO Users (Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, GroupName, CreatedAtUtc)
-                VALUES ($id, 'admin', $hash, $salt, 'Admin', '', NULL, NULL, NULL, $created);
+                INSERT INTO Users (Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, Groups, CreatedAtUtc)
+                VALUES ($id, 'admin', $hash, $salt, 'Admin', '', NULL, NULL, '[]', $created);
                 """;
             seedCmd.Parameters.AddWithValue("$id", Guid.NewGuid().ToString());
             seedCmd.Parameters.AddWithValue("$hash", hash);
@@ -127,7 +154,7 @@ public class SqliteUserRepository : IUserRepository
         await conn.OpenAsync();
 
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, GroupName, CreatedAtUtc FROM Users WHERE Username = $username;";
+        cmd.CommandText = "SELECT Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, Groups, CreatedAtUtc FROM Users WHERE Username = $username;";
         cmd.Parameters.AddWithValue("$username", username);
 
         await using var reader = await cmd.ExecuteReaderAsync();
@@ -141,7 +168,7 @@ public class SqliteUserRepository : IUserRepository
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO Users (Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, GroupName, CreatedAtUtc)
+            INSERT INTO Users (Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, Groups, CreatedAtUtc)
             VALUES ($id, $username, $hash, $salt, $role, $screens, $displayName, $email, $group, $created);
             """;
         cmd.Parameters.AddWithValue("$id", user.Id.ToString());
@@ -152,7 +179,7 @@ public class SqliteUserRepository : IUserRepository
         cmd.Parameters.AddWithValue("$screens", JsonSerializer.Serialize(user.AllowedScreens ?? new List<string>()));
         cmd.Parameters.AddWithValue("$displayName", (object?)user.DisplayName ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$email", (object?)user.Email ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("$group", (object?)user.GroupName ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$group", JsonSerializer.Serialize(user.Groups ?? new List<string>()));
         cmd.Parameters.AddWithValue("$created", user.CreatedAtUtc.ToString("O"));
         await cmd.ExecuteNonQueryAsync();
 
@@ -176,7 +203,7 @@ public class SqliteUserRepository : IUserRepository
         await using var conn = new SqliteConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, GroupName, CreatedAtUtc FROM Users ORDER BY Username;";
+        cmd.CommandText = "SELECT Id, Username, PasswordHash, PasswordSalt, Role, AllowedScreens, DisplayName, Email, Groups, CreatedAtUtc FROM Users ORDER BY Username;";
 
         var results = new List<User>();
         await using var reader = await cmd.ExecuteReaderAsync();
@@ -206,15 +233,15 @@ public class SqliteUserRepository : IUserRepository
         await cmd.ExecuteNonQueryAsync();
     }
 
-    public async Task UpdateProfileAsync(string username, string? displayName, string? email, string? groupName)
+    public async Task UpdateProfileAsync(string username, string? displayName, string? email, List<string> groups)
     {
         await using var conn = new SqliteConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "UPDATE Users SET DisplayName = $displayName, Email = $email, GroupName = $group WHERE Username = $username;";
+        cmd.CommandText = "UPDATE Users SET DisplayName = $displayName, Email = $email, Groups = $groups WHERE Username = $username;";
         cmd.Parameters.AddWithValue("$displayName", (object?)displayName ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$email", (object?)email ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("$group", (object?)groupName ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$groups", JsonSerializer.Serialize(groups ?? new List<string>()));
         cmd.Parameters.AddWithValue("$username", username);
         await cmd.ExecuteNonQueryAsync();
     }
@@ -224,11 +251,14 @@ public class SqliteUserRepository : IUserRepository
         await using var conn = new SqliteConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT DISTINCT GroupName FROM Users WHERE GroupName IS NOT NULL AND GroupName != '' ORDER BY GroupName;";
-        var results = new List<string>();
+        cmd.CommandText = "SELECT Groups FROM Users;";
+        var names = new List<string>();
         await using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync()) results.Add(reader.GetString(0));
-        return results;
+        while (await reader.ReadAsync()) names.AddRange(ParseScreens(reader.GetString(0)));
+        return names.Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
     }
 
     public async Task<bool> DeleteAsync(string username)
@@ -261,7 +291,7 @@ public class SqliteUserRepository : IUserRepository
         AllowedScreens = ParseScreens(reader.GetString(5)),
         DisplayName = reader.IsDBNull(6) ? null : reader.GetString(6),
         Email = reader.IsDBNull(7) ? null : reader.GetString(7),
-        GroupName = reader.IsDBNull(8) ? null : reader.GetString(8),
+        Groups = ParseScreens(reader.GetString(8)),
         CreatedAtUtc = DateTime.Parse(reader.GetString(9)).ToUniversalTime()
     };
 

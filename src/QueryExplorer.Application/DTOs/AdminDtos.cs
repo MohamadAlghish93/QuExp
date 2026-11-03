@@ -9,14 +9,14 @@ public class CreateUserRequest
     public UserRole Role { get; set; } = UserRole.Viewer;
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
-    public string? GroupName { get; set; }
+    public List<string>? Groups { get; set; }
 }
 
 public class UpdateUserProfileRequest
 {
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
-    public string? GroupName { get; set; }
+    public List<string>? Groups { get; set; }
 }
 
 public class UpdateUserRoleRequest
@@ -42,7 +42,7 @@ public class UserSummaryResponse
     public List<string> AllowedScreens { get; set; } = new();
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
-    public string? GroupName { get; set; }
+    public List<string> Groups { get; set; } = new();
     public DateTime CreatedAtUtc { get; set; }
 }
 

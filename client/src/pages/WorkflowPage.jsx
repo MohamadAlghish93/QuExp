@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 import WorkflowStepper from '../components/WorkflowStepper.jsx'
+import { buildStages, stageName } from '../utils/workflowStages.js'
 import BusyOverlay from '../components/BusyOverlay.jsx'
 
-const ACTION_LABEL = { Started: '▶ Started', Forward: '➡ Moved forward', Back: '↩ Sent back', Detached: '✂ Detached' }
+const ACTION_LABEL = {
+  Started: '▶ Started', Forward: '➡ Moved forward', Back: '↩ Sent back', Detached: '✂ Detached',
+  Passed: '✔ Passed', Approved: '✅ Approved', Revoked: '🚫 Approval revoked',
+}
 
 // Your workflow inbox: templates waiting on you, your own templates in flight, and a place to
 // start a saved workflow on one of your templates. Moving, history and notes all live here.
@@ -66,18 +70,38 @@ export default function WorkflowPage() {
     run('Starting workflow…', () => api.startWorkflow(t.id, definitionId, null), `"${t.name}" entered the workflow as a draft.`)
   }
 
-  function moveForward(item) {
-    const next = item.steps[item.currentStepIndex + 1]
+  function clearNote(item) { setNotes((n) => ({ ...n, [item.favoriteId]: '' })) }
+
+  function moveForward(item, nextName) {
     run('Moving to the next step…',
-      async () => { await api.moveWorkflow(item.favoriteId, item.currentStepIndex + 1, notes[item.favoriteId]); setNotes((n) => ({ ...n, [item.favoriteId]: '' })) },
-      `Moved to "${next.name}".`)
+      async () => { await api.moveWorkflow(item.favoriteId, item.currentStageIndex + 1, notes[item.favoriteId]); clearNote(item) },
+      `Moved to "${nextName}".`)
   }
 
-  function sendBack(item) {
-    const target = backTarget[item.favoriteId] ?? 0
+  function passStep(item, stepIndex) {
+    run('Passing the step…',
+      async () => { await api.passWorkflowStep(item.favoriteId, stepIndex, notes[item.favoriteId]); clearNote(item) },
+      `"${item.steps[stepIndex].name}" passed.`)
+  }
+
+  function approveStep(item, stepIndex) {
+    run('Approving…',
+      async () => { await api.approveWorkflowStep(item.favoriteId, stepIndex, notes[item.favoriteId]); clearNote(item) },
+      `You approved "${item.steps[stepIndex].name}".`)
+  }
+
+  function revokeApproval(item, stepIndex) {
+    if (!confirm(`Revoke the approval of "${item.steps[stepIndex].name}"? If that approval made the template official, it goes back to draft.`)) return
+    run('Revoking approval…',
+      async () => { await api.revokeWorkflowApproval(item.favoriteId, stepIndex, notes[item.favoriteId]); clearNote(item) },
+      'Approval revoked.')
+  }
+
+  function sendBack(item, stages) {
+    const target = Number(backTarget[item.favoriteId] ?? 0)
     run('Sending back…',
-      async () => { await api.moveWorkflow(item.favoriteId, Number(target), notes[item.favoriteId]); setNotes((n) => ({ ...n, [item.favoriteId]: '' })) },
-      `Sent back to "${item.steps[Number(target)].name}".`)
+      async () => { await api.moveWorkflow(item.favoriteId, target, notes[item.favoriteId]); clearNote(item) },
+      `Sent back to "${stageName(item.steps, stages[target])}".`)
   }
 
   function detach(item) {
@@ -85,34 +109,53 @@ export default function WorkflowPage() {
     run('Detaching…', () => api.detachWorkflow(item.favoriteId), 'Detached from the workflow.')
   }
 
-  async function toggleHistory(id) {
-      if (history[id]) { setHistory((h) => { const n = { ...h }; delete n[id]; return n }); return }
+    async function toggleHistory(id) {
+        // 1. If it's already open or loading, close/cancel it
+        if (history[id]) {
+            setHistory((h) => {
+                const n = { ...h };
+                delete n[id];
+                return n;
+            });
+            return;
+        }
 
-      setHistory((h) => ({ ...h, [id]: 'loading' }))
+        // 2. Set to loading state
+        setHistory((h) => ({ ...h, [id]: 'loading' }));
 
-      try {
-          const data = await api.getWorkflowHistory(id);
-          setHistory((h) => ({ ...h, [id]: data }));
-      } catch (e) {
-          setHistory((h) => {
-              const n = { ...h };
-              delete n[id];
-              return n;
-          });
-          setError(e.message);
-      }
+        try {
+            // 3. Await the API call OUTSIDE the setHistory updater
+            const data = await api.getWorkflowHistory(id);
 
-    //try {
-    //  setHistory((h) => ({ ...h, [id]: await api.getWorkflowHistory(id) }))
-    //} catch (e) {
-    //  setHistory((h) => { const n = { ...h }; delete n[id]; return n })
-    //  setError(e.message)
-    //}
-  }
+            // 4. Update the state with the result
+            setHistory((h) => {
+                // Race condition check: If the user closed it while the API was fetching, 
+                // h[id] will be undefined. Only update if it is still 'loading'.
+                if (h[id] !== 'loading') return h;
+                return { ...h, [id]: data };
+            });
+        } catch (e) {
+            setHistory((h) => {
+                // Only delete if it's still trying to load this specific ID
+                if (h[id] !== 'loading') return h;
+                const n = { ...h };
+                delete n[id];
+                return n;
+            });
+            setError(e.message);
+        }
+    }
 
   function renderCard(item) {
-    const last = item.steps.length - 1
+    const stages = buildStages(item.steps)
+    const stage = stages[item.currentStageIndex] || []
+    const isLastStage = item.currentStageIndex >= stages.length - 1
+    const nextName = isLastStage ? null : stageName(item.steps, stages[item.currentStageIndex + 1])
+    const approved = (i) => item.approvals.some((a) => a.stepIndex === i)
     const entries = history[item.favoriteId]
+    const showControls = item.canAct || item.canGoBack || item.canRevoke
+    const pending = stage.filter((i) => !item.passedSteps.includes(i))
+
     return (
       <li key={item.favoriteId} className="favorite-card wf-card">
         <div className="favorite-card-header">
@@ -124,7 +167,16 @@ export default function WorkflowPage() {
         </div>
         <p className="muted">{item.description || 'No description provided.'} · by @{item.ownerUsername}</p>
 
-        <WorkflowStepper steps={item.steps} currentIndex={item.currentStepIndex} />
+        <WorkflowStepper steps={item.steps} currentStageIndex={item.currentStageIndex}
+                         passedSteps={item.passedSteps} approvals={item.approvals} />
+
+        {item.approvals.length > 0 && (
+          <ul className="wf-approvals">
+            {item.approvals.map((a) => (
+              <li key={a.stepIndex}>✅ “{a.stepName}” approved by @{a.approvedByUsername} · {new Date(a.approvedAtUtc).toLocaleString()}</li>
+            ))}
+          </ul>
+        )}
 
         <div className="favorite-card-actions">
           <button className="link-button" onClick={() => setSqlOpenId(sqlOpenId === item.favoriteId ? null : item.favoriteId)}>
@@ -145,7 +197,7 @@ export default function WorkflowPage() {
             {entries.map((h) => (
               <li key={h.id}>
                 <span className="wf-history-action">{ACTION_LABEL[h.action] || h.action}</span>
-                {h.action !== 'Started' && h.action !== 'Detached' ? ` ${h.fromStepName} → ${h.toStepName}` : ` at ${h.toStepName}`}
+                {['Forward', 'Back'].includes(h.action) ? ` ${h.fromStepName} → ${h.toStepName}` : ` “${h.toStepName}”`}
                 <span className="muted"> · @{h.movedByUsername} · {new Date(h.movedAtUtc).toLocaleString()}</span>
                 {h.note && <div className="wf-history-note">“{h.note}”</div>}
               </li>
@@ -153,32 +205,64 @@ export default function WorkflowPage() {
           </ul>
         )}
 
-        {item.canAct ? (
+        {showControls ? (
           <div className="wf-actions">
             <textarea rows={2} placeholder="Add a note (optional) - e.g. what you checked, or why it's being sent back"
                       value={notes[item.favoriteId] || ''}
                       onChange={(e) => setNotes((n) => ({ ...n, [item.favoriteId]: e.target.value }))} />
-            <div className="wf-actions-row">
-              {item.currentStepIndex < last && (
-                <button onClick={() => moveForward(item)} disabled={!!busyMessage}>
-                  ➡ Move to “{item.steps[item.currentStepIndex + 1].name}”
+
+            <div className="wf-actions-group">
+              {item.approvableSteps.map((i) => (
+                <button key={`a${i}`} className="wf-approve-button" onClick={() => approveStep(item, i)} disabled={!!busyMessage}>
+                  ✅ Approve “{item.steps[i].name}”
+                </button>
+              ))}
+
+              {/* Single-step stage: one button moves it on. Parallel stage: each group passes its own step. */}
+              {stage.length === 1 && !isLastStage && item.actionableSteps.includes(stage[0]) && (
+                <button onClick={() => moveForward(item, nextName)}
+                        disabled={!!busyMessage || (item.steps[stage[0]].requiresApproval && !approved(stage[0]))}
+                        title={item.steps[stage[0]].requiresApproval && !approved(stage[0]) ? 'Approve this step first' : undefined}>
+                  ➡ Move to “{nextName}”
                 </button>
               )}
-              {item.currentStepIndex > 0 && (
+              {stage.length > 1 && item.actionableSteps.map((i) => (
+                <button key={`p${i}`} onClick={() => passStep(item, i)}
+                        disabled={!!busyMessage || (item.steps[i].requiresApproval && !approved(i))}
+                        title={item.steps[i].requiresApproval && !approved(i) ? 'Approve this step first' : undefined}>
+                  ✔ Pass “{item.steps[i].name}”
+                </button>
+              ))}
+            </div>
+
+            {item.canGoBack && (
+              <div className="wf-actions-group">
                 <span className="wf-back">
                   <select value={backTarget[item.favoriteId] ?? 0}
                           onChange={(e) => setBackTarget((b) => ({ ...b, [item.favoriteId]: e.target.value }))}>
-                    {item.steps.slice(0, item.currentStepIndex).map((s, i) => <option key={i} value={i}>{i + 1}. {s.name}</option>)}
+                    {stages.slice(0, item.currentStageIndex).map((st, si) => (
+                      <option key={si} value={si}>{si + 1}. {stageName(item.steps, st)}</option>
+                    ))}
                   </select>
-                  <button className="secondary" onClick={() => sendBack(item)} disabled={!!busyMessage}>↩ Send back</button>
+                  <button className="secondary" onClick={() => sendBack(item, stages)} disabled={!!busyMessage}>↩ Send back</button>
                 </span>
-              )}
-            </div>
+              </div>
+            )}
+
+            {item.canRevoke && (
+              <div className="wf-actions-group">
+                {stage.filter(approved).map((i) => (
+                  <button key={`r${i}`} className="secondary wf-revoke-button" onClick={() => revokeApproval(item, i)} disabled={!!busyMessage}>
+                    🚫 Revoke approval “{item.steps[i].name}” <span className="muted">(Admin)</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <p className="muted wf-waiting">
-            Waiting on {item.steps[item.currentStepIndex].responsibleGroup
-              ? `the “${item.steps[item.currentStepIndex].responsibleGroup}” group` : 'the template owner'}.
+            Waiting on {pending.length === 0 ? 'the next step' : pending.map((i) => item.steps[i].responsibleGroup
+              ? `the “${item.steps[i].responsibleGroup}” group` : 'the template owner').join(' and ')}.
           </p>
         )}
       </li>

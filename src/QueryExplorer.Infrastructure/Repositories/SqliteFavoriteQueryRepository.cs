@@ -50,7 +50,9 @@ public class SqliteFavoriteQueryRepository : IFavoriteQueryRepository
                     WorkflowDefinitionId TEXT NULL,
                     WorkflowName TEXT NULL,
                     WorkflowSteps TEXT NOT NULL DEFAULT '[]',
-                    WorkflowStepIndex INTEGER NOT NULL DEFAULT 0
+                    WorkflowStepIndex INTEGER NOT NULL DEFAULT 0,
+                    WorkflowPassedSteps TEXT NOT NULL DEFAULT '[]',
+                    WorkflowApprovals TEXT NOT NULL DEFAULT '[]'
                 );
                 """;
             createCmd.ExecuteNonQuery();
@@ -85,7 +87,9 @@ public class SqliteFavoriteQueryRepository : IFavoriteQueryRepository
             "ALTER TABLE Favorites ADD COLUMN WorkflowDefinitionId TEXT NULL;",
             "ALTER TABLE Favorites ADD COLUMN WorkflowName TEXT NULL;",
             "ALTER TABLE Favorites ADD COLUMN WorkflowSteps TEXT NOT NULL DEFAULT '[]';",
-            "ALTER TABLE Favorites ADD COLUMN WorkflowStepIndex INTEGER NOT NULL DEFAULT 0;"
+            "ALTER TABLE Favorites ADD COLUMN WorkflowStepIndex INTEGER NOT NULL DEFAULT 0;",
+            "ALTER TABLE Favorites ADD COLUMN WorkflowPassedSteps TEXT NOT NULL DEFAULT '[]';",
+            "ALTER TABLE Favorites ADD COLUMN WorkflowApprovals TEXT NOT NULL DEFAULT '[]';"
         })
         {
             try
@@ -130,9 +134,9 @@ public class SqliteFavoriteQueryRepository : IFavoriteQueryRepository
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             INSERT OR REPLACE INTO Favorites
-                (Id, Name, Sql, ConnectionId, Category, Tags, CreatedAtUtc, LastUsedAtUtc, OwnerUsername, IsTemplate, Description, SharedWithUsernames, ApprovalStatus, HiddenByUsernames, DateFieldFormats, WorkflowDefinitionId, WorkflowName, WorkflowSteps, WorkflowStepIndex)
+                (Id, Name, Sql, ConnectionId, Category, Tags, CreatedAtUtc, LastUsedAtUtc, OwnerUsername, IsTemplate, Description, SharedWithUsernames, ApprovalStatus, HiddenByUsernames, DateFieldFormats, WorkflowDefinitionId, WorkflowName, WorkflowSteps, WorkflowStepIndex, WorkflowPassedSteps, WorkflowApprovals)
             VALUES
-                ($id, $name, $sql, $connId, $category, $tags, $created, $lastUsed, $owner, $isTemplate, $description, $sharedWith, $approval, $hiddenBy, $dateFormats, $wfId, $wfName, $wfSteps, $wfIndex);
+                ($id, $name, $sql, $connId, $category, $tags, $created, $lastUsed, $owner, $isTemplate, $description, $sharedWith, $approval, $hiddenBy, $dateFormats, $wfId, $wfName, $wfSteps, $wfIndex, $wfPassed, $wfApprovals);
             """;
         cmd.Parameters.AddWithValue("$id", f.Id.ToString());
         cmd.Parameters.AddWithValue("$name", f.Name);
@@ -153,6 +157,8 @@ public class SqliteFavoriteQueryRepository : IFavoriteQueryRepository
         cmd.Parameters.AddWithValue("$wfName", (object?)f.WorkflowName ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$wfSteps", JsonSerializer.Serialize(f.WorkflowSteps ?? new List<WorkflowStep>()));
         cmd.Parameters.AddWithValue("$wfIndex", f.WorkflowStepIndex);
+        cmd.Parameters.AddWithValue("$wfPassed", JsonSerializer.Serialize(f.WorkflowPassedSteps ?? new List<int>()));
+        cmd.Parameters.AddWithValue("$wfApprovals", JsonSerializer.Serialize(f.WorkflowApprovals ?? new List<WorkflowApproval>()));
         cmd.ExecuteNonQuery();
     }
 
@@ -323,8 +329,17 @@ public class SqliteFavoriteQueryRepository : IFavoriteQueryRepository
             ? null : Guid.Parse(reader.GetString(reader.GetOrdinal("WorkflowDefinitionId"))),
         WorkflowName = reader.IsDBNull(reader.GetOrdinal("WorkflowName")) ? null : reader.GetString(reader.GetOrdinal("WorkflowName")),
         WorkflowSteps = DeserializeSteps(reader.GetString(reader.GetOrdinal("WorkflowSteps"))),
-        WorkflowStepIndex = reader.GetInt32(reader.GetOrdinal("WorkflowStepIndex"))
+        WorkflowStepIndex = reader.GetInt32(reader.GetOrdinal("WorkflowStepIndex")),
+        WorkflowPassedSteps = DeserializeJson<List<int>>(reader.GetString(reader.GetOrdinal("WorkflowPassedSteps"))) ?? new List<int>(),
+        WorkflowApprovals = DeserializeJson<List<WorkflowApproval>>(reader.GetString(reader.GetOrdinal("WorkflowApprovals"))) ?? new List<WorkflowApproval>()
     };
+
+    private static T? DeserializeJson<T>(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return default;
+        try { return JsonSerializer.Deserialize<T>(json); }
+        catch (JsonException) { return default; }
+    }
 
     private static List<WorkflowStep> DeserializeSteps(string json)
     {

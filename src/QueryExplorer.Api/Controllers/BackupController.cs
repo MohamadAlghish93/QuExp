@@ -108,7 +108,7 @@ public class BackupController : ControllerBase
             {
                 await _users.UpdateRoleAsync(user.Username, user.Role);
                 await _users.UpdateAllowedScreensAsync(user.Username, user.AllowedScreens);
-                await _users.UpdateProfileAsync(user.Username, user.DisplayName, user.Email, user.GroupName);
+                await _users.UpdateProfileAsync(user.Username, user.DisplayName, user.Email, user.Groups);
                 await _users.UpdatePasswordAsync(user.Username, user.PasswordHash, user.PasswordSalt);
             }
             result.UsersImported++;

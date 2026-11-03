@@ -11,5 +11,14 @@ public interface IPdfGenerator
     /// If backgroundPdfBytes is provided, fields are drawn on top of that PDF's first page
     /// instead of a blank page.
     /// </summary>
-    byte[] Generate(PdfLayoutTemplate layout, IReadOnlyDictionary<string, object?> rowData, byte[]? backgroundPdfBytes = null);
+    byte[] Generate(PdfLayoutTemplate layout, IReadOnlyDictionary<string, object?> rowData, byte[]? backgroundPdfBytes = null,
+        IReadOnlyList<PdfTableData>? tables = null);
+}
+
+/// <summary>A sub-query table's data, already fetched, ready to draw.</summary>
+public class PdfTableData
+{
+    public PdfTableBlock Block { get; set; } = new();
+    public List<PdfTableColumn> Columns { get; set; } = new();
+    public List<Dictionary<string, object?>> Rows { get; set; } = new();
 }

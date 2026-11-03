@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.jsx'
+import GroupsInput from '../components/GroupsInput.jsx'
 
 const ROLE_DESCRIPTIONS = {
   Viewer: 'Can run queries against connections they have access to, use favorites/templates. Can\'t manage connections or users.',
@@ -8,7 +9,7 @@ const ROLE_DESCRIPTIONS = {
   Admin: 'Everything, including managing users and roles, and seeing every connection regardless of restrictions.',
 }
 
-const EMPTY_FORM = { username: '', password: '', role: 'Viewer', displayName: '', email: '', groupName: '' }
+const EMPTY_FORM = { username: '', password: '', role: 'Viewer', displayName: '', email: '', groups: [] }
 const UNGROUPED = '(ungrouped)'
 
 export default function UsersPage() {
@@ -42,9 +43,12 @@ export default function UsersPage() {
   const usersByGroup = useMemo(() => {
     const map = {}
     for (const u of users) {
-      const key = u.groupName || UNGROUPED
-      if (!map[key]) map[key] = []
-      map[key].push(u)
+      // A user in several groups is listed under each of them.
+      const keys = u.groups && u.groups.length > 0 ? u.groups : [UNGROUPED]
+      for (const key of keys) {
+        if (!map[key]) map[key] = []
+        map[key].push(u)
+      }
     }
     return map
   }, [users])
@@ -80,7 +84,7 @@ export default function UsersPage() {
     setEditForm({
       displayName: user.displayName || '',
       email: user.email || '',
-      groupName: user.groupName || '',
+      groups: user.groups || [],
     })
   }
 
@@ -165,14 +169,10 @@ export default function UsersPage() {
             Email (optional)
             <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
           </label>
-          <label>
-            Group (optional)
-            <input value={form.groupName} onChange={(e) => setForm((f) => ({ ...f, groupName: e.target.value }))}
-                   list="existing-groups" placeholder="Pick an existing group or type a new name" />
-            <datalist id="existing-groups">
-              {groups.map((g) => <option key={g} value={g} />)}
-            </datalist>
-          </label>
+          <div className="field-block">
+            <span className="field-block-label">Groups (optional)</span>
+            <GroupsInput value={form.groups} onChange={(g) => setForm((f) => ({ ...f, groups: g }))} suggestions={groups} />
+          </div>
 
           <button type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create user'}</button>
         </form>
@@ -208,7 +208,7 @@ export default function UsersPage() {
                       {u.displayName ? `${u.displayName} (${u.username})` : u.username}
                       {u.username === myUsername ? ' — you' : ''}
                     </strong>
-                    {u.groupName && <span className="badge badge-muted">{u.groupName}</span>}
+                    {(u.groups || []).map((g) => <span key={g} className="badge badge-muted">{g}</span>)}
                   </div>
                   {u.email && <p className="muted connection-detail">{u.email}</p>}
                   <p className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</p>
@@ -238,11 +238,10 @@ export default function UsersPage() {
                         Email
                         <input type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
                       </label>
-                      <label>
-                        Group
-                        <input value={editForm.groupName} onChange={(e) => setEditForm((f) => ({ ...f, groupName: e.target.value }))}
-                               list="existing-groups" />
-                      </label>
+                      <div className="field-block">
+                        <span className="field-block-label">Groups</span>
+                        <GroupsInput value={editForm.groups} onChange={(g) => setEditForm((f) => ({ ...f, groups: g }))} suggestions={groups} />
+                      </div>
                       <div className="modal-actions">
                         <button type="button" className="secondary" onClick={() => setEditingUsername(null)}>Cancel</button>
                         <button type="button" onClick={() => handleSaveEdit(u.username)}>Save</button>

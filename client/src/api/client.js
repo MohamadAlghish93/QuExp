@@ -138,6 +138,12 @@ export const api = {
   moveWorkflow: (favoriteId, toStepIndex, note) =>
     request(`/api/workflows/templates/${favoriteId}/move`, { method: 'POST', body: JSON.stringify({ toStepIndex, note }) }),
   detachWorkflow: (favoriteId) => request(`/api/workflows/templates/${favoriteId}`, { method: 'DELETE' }),
+  passWorkflowStep: (favoriteId, stepIndex, note) =>
+    request(`/api/workflows/templates/${favoriteId}/pass`, { method: 'POST', body: JSON.stringify({ stepIndex, note }) }),
+  approveWorkflowStep: (favoriteId, stepIndex, note) =>
+    request(`/api/workflows/templates/${favoriteId}/approve`, { method: 'POST', body: JSON.stringify({ stepIndex, note }) }),
+  revokeWorkflowApproval: (favoriteId, stepIndex, note) =>
+    request(`/api/workflows/templates/${favoriteId}/revoke`, { method: 'POST', body: JSON.stringify({ stepIndex, note }) }),
 
   getErrorLog: (source = '') => request(`/api/admin/error-log?limit=300${source ? `&source=${source}` : ''}`),
   clearErrorLog: () => request('/api/admin/error-log', { method: 'DELETE' }),

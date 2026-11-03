@@ -56,7 +56,17 @@ public class FavoriteQuery
 
     /// <summary>This template's own copy of the steps, taken when the workflow started.</summary>
     public List<WorkflowStep> WorkflowSteps { get; set; } = new();
+
+    /// <summary>The current STAGE (not step) - steps flagged ParallelWithPrevious share a stage. For a
+    /// workflow with no parallel steps every step is its own stage, so this is just the step number.</summary>
     public int WorkflowStepIndex { get; set; }
+
+    /// <summary>Steps (by index into WorkflowSteps) already passed within the current stage.</summary>
+    public List<int> WorkflowPassedSteps { get; set; } = new();
+
+    /// <summary>Approvals given in this workflow, shown as "Approved by ...". Cleared for any stage
+    /// the template is sent back to, since reworked steps need approving again.</summary>
+    public List<WorkflowApproval> WorkflowApprovals { get; set; } = new();
 }
 
 /// <summary>

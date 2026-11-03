@@ -10,7 +10,7 @@ public interface IUserRepository
     Task<List<User>> GetAllAsync();
     Task UpdateRoleAsync(string username, Domain.Enums.UserRole role);
     Task UpdateAllowedScreensAsync(string username, List<string> screens);
-    Task UpdateProfileAsync(string username, string? displayName, string? email, string? groupName);
+    Task UpdateProfileAsync(string username, string? displayName, string? email, List<string> groups);
     Task<List<string>> GetDistinctGroupNamesAsync();
     Task<bool> DeleteAsync(string username);
     Task<int> CountByRoleAsync(Domain.Enums.UserRole role);

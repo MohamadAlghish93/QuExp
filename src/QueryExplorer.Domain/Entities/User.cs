@@ -19,9 +19,11 @@ public class User
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
 
-    /// <summary>Freeform grouping label (e.g. "Sales", "Finance") for organizing users on the Users page.
-    /// Not a permission boundary by itself - just organization/display.</summary>
-    public string? GroupName { get; set; }
+    /// <summary>
+    /// Groups this user belongs to (e.g. "Sales", "Finance") - a user can be in several. Used to organize
+    /// the Users page and to decide who is responsible for a workflow step.
+    /// </summary>
+    public List<string> Groups { get; set; } = new();
 
     /// <summary>
     /// Which top-nav screens this user can see, e.g. ["dashboard","query","favorites"].

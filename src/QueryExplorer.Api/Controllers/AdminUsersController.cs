@@ -24,6 +24,14 @@ public class AdminUsersController : ControllerBase
         _auditLog = auditLog;
     }
 
+    /// <summary>Trims, drops blanks and case-insensitive duplicates, so "Sales", " sales" and "" never become separate groups.</summary>
+    private static List<string> NormalizeGroups(IEnumerable<string>? groups) =>
+        (groups ?? Enumerable.Empty<string>())
+            .Select(g => g?.Trim() ?? "")
+            .Where(g => g.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
     private string CurrentUsername => User.FindFirstValue(ClaimTypes.Name) ?? "";
 
     [HttpGet]
@@ -37,7 +45,7 @@ public class AdminUsersController : ControllerBase
             AllowedScreens = u.AllowedScreens,
             DisplayName = u.DisplayName,
             Email = u.Email,
-            GroupName = u.GroupName,
+            Groups = u.Groups,
             CreatedAtUtc = u.CreatedAtUtc
         }).ToList());
     }
@@ -61,7 +69,7 @@ public class AdminUsersController : ControllerBase
             Role = request.Role,
             DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? null : request.DisplayName.Trim(),
             Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
-            GroupName = string.IsNullOrWhiteSpace(request.GroupName) ? null : request.GroupName.Trim()
+            Groups = NormalizeGroups(request.Groups)
         });
 
         await _auditLog.AddAsync(new AuditLogEntry { ActorUsername = CurrentUsername, Action = "UserCreated", TargetDescription = $"{user.Username} ({user.Role})" });
@@ -69,7 +77,7 @@ public class AdminUsersController : ControllerBase
         return Ok(new UserSummaryResponse
         {
             Username = user.Username, Role = user.Role.ToString(),
-            DisplayName = user.DisplayName, Email = user.Email, GroupName = user.GroupName,
+            DisplayName = user.DisplayName, Email = user.Email, Groups = user.Groups,
             CreatedAtUtc = user.CreatedAtUtc
         });
     }
@@ -85,7 +93,7 @@ public class AdminUsersController : ControllerBase
             username,
             string.IsNullOrWhiteSpace(request.DisplayName) ? null : request.DisplayName.Trim(),
             string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
-            string.IsNullOrWhiteSpace(request.GroupName) ? null : request.GroupName.Trim());
+            NormalizeGroups(request.Groups));
 
         return NoContent();
     }

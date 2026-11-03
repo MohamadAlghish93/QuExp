@@ -53,7 +53,6 @@ export default function DashboardPage() {
     <div className="dashboard-page">
       <div className="dashboard-header">
         <h2>Dashboard</h2>
-        <Link className="link-button" to="/query">Open query editor →</Link>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
