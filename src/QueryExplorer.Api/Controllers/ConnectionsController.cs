@@ -64,8 +64,10 @@ public class ConnectionsController : ControllerBase
     [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<ConnectionResponse>> Save([FromBody] SaveConnectionRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Host))
-            return BadRequest(new { error = "Name and host are required." });
+        var isSqlite = request.ProviderType == Domain.Enums.DatabaseProviderType.Sqlite;
+        if (string.IsNullOrWhiteSpace(request.Name) ||
+            (isSqlite ? string.IsNullOrWhiteSpace(request.Database) : string.IsNullOrWhiteSpace(request.Host)))
+            return BadRequest(new { error = isSqlite ? "Name and database file path are required." : "Name and host are required." });
 
         var existing = request.Id.HasValue ? await _connections.GetByIdAsync(request.Id.Value) : null;
 
@@ -85,8 +87,8 @@ public class ConnectionsController : ControllerBase
             Id = existing?.Id ?? request.Id ?? Guid.NewGuid(),
             Name = request.Name.Trim(),
             ProviderType = request.ProviderType,
-            Host = request.Host.Trim(),
-            Port = request.Port,
+            Host = isSqlite ? string.Empty : request.Host.Trim(),
+            Port = isSqlite ? 0 : request.Port,
             Database = request.Database.Trim(),
             Username = request.Username.Trim(),
             EncryptedPassword = encryptedPassword,

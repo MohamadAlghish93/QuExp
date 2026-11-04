@@ -24,5 +24,18 @@
     "ExtraOptions": "",
     "AllowedUsernames": [],
     "CreatedAtUtc": "2026-09-20T10:18:34.4598079Z"
+  },
+  {
+    "Id": "7b06f332-678b-45cb-93d9-d250d6afa2c7",
+    "Name": "local-sqllite",
+    "ProviderType": "Sqlite",
+    "Host": "",
+    "Port": 0,
+    "Database": "/Users/chadooo/Desktop/ToMe-Code/my-db-sqllite/tome.db",
+    "Username": "",
+    "EncryptedPassword": "",
+    "ExtraOptions": "",
+    "AllowedUsernames": [],
+    "CreatedAtUtc": "2026-11-04T16:34:44.487768Z"
   }
 ]

@@ -9,6 +9,7 @@ import SaveFavoriteModal from '../components/SaveFavoriteModal.jsx'
 import ParameterModal from '../components/ParameterModal.jsx'
 import GroupByPanel from '../components/GroupByPanel.jsx'
 import ConnectionHealthBanner from '../components/ConnectionHealthBanner.jsx'
+import Icon from '@cloudscape-design/components/icon'
 
 const PAGE_SIZE = 100
 const PLACEHOLDER_REGEX = /\{\{\s*(\w+)\s*\}\}/g
@@ -168,6 +169,7 @@ export default function QueryPage() {
   return (
     <div className="query-page">
       <ConnectionHealthBanner onRefresh={(refresh) => api.getConnectionHealth(refresh)} />
+      <h2 className="page-title"><Icon name="search" /> Query</h2>
 
       <div className="toolbar">
         <CloudscapeSelect value={connectionId} onChange={(e) => setConnectionId(e.target.value)}>
@@ -202,15 +204,15 @@ export default function QueryPage() {
         </p>
       )}
 
-      <div className="toolbar">
-        <CloudscapeButton onClick={() => runQuery(0)} disabled={loading}>
+      <div className="toolbar query-actions">
+        <CloudscapeButton className="query-run-button" iconName="search" onClick={() => runQuery(0)} disabled={loading}>
           {loading ? 'Running…' : 'Run query'}
         </CloudscapeButton>
         <CloudscapeButton className="secondary" onClick={() => exportCsv()} disabled={!page.columns.length || exporting}>
           {exporting ? 'Exporting…' : 'Export CSV (all rows)'}
         </CloudscapeButton>
-        <CloudscapeButton className="secondary" onClick={() => setShowSaveModal(true)} disabled={!sql.trim()}>
-          ★ Save as favorite
+        <CloudscapeButton className="secondary" iconName="star" onClick={() => setShowSaveModal(true)} disabled={!sql.trim()}>
+          Save as favorite
         </CloudscapeButton>
         {elapsedMs !== null && <span className="muted">page fetched in {elapsedMs}ms</span>}
       </div>

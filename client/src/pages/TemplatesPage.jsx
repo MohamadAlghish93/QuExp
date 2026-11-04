@@ -1,5 +1,6 @@
 import CloudscapeInput from '../components/CloudscapeInput.jsx'
 import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Icon from '@cloudscape-design/components/icon'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -237,13 +238,13 @@ export default function TemplatesPage() {
     return (
       <div className="template-result">
         <div className="template-result-header">
-          <strong>📊 Results</strong>
+          <strong><Icon name="list-view" /> Results</strong>
           <div className="template-result-header-actions">
             {canEditTemplates && (
               <CloudscapeButton className="link-button" onClick={() => navigate(`/pdf-layouts?favoriteId=${t.id}`)}>design PDF layout</CloudscapeButton>
             )}
-            <CloudscapeButton className="link-button" onClick={() => handleExport(t)} disabled={exportingId === t.id}>
-              {exportingId === t.id ? 'Preparing file…' : '⬇ Download everything (CSV)'}
+            <CloudscapeButton className="link-button" iconName="download" onClick={() => handleExport(t)} disabled={exportingId === t.id}>
+              {exportingId === t.id ? 'Preparing file…' : 'Download everything (CSV)'}
             </CloudscapeButton>
             <CloudscapeButton className="link-button" iconName="close" onClick={() => closeResult(t.id)}>Close</CloudscapeButton>
           </div>
@@ -268,11 +269,12 @@ export default function TemplatesPage() {
             rowActions={(row) => (
               <CloudscapeButton
                 className="icon-text-button row-pdf-button"
+                iconName="file"
                 onClick={() => handleGeneratePdf(t, row)}
                 disabled={generatingPdfFor === t.id}
                 title="Make a PDF of this record"
               >
-                📄 PDF
+                PDF
               </CloudscapeButton>
             )}
           />
@@ -303,11 +305,11 @@ export default function TemplatesPage() {
           <div className="template-badges">
             {t.workflowSteps?.length > 0 && (
               <span className={isCurrentStageOfficial(t) ? 'badge' : 'badge badge-pending'} title={`Workflow: ${t.workflowName}`}>
-                🔀 {currentStageName(t)}
+                <><Icon name="share" /> {currentStageName(t)}</>
               </span>
             )}
-            {t.approvalStatus === 'Pending' && !(t.workflowSteps?.length > 0) && <span className="badge badge-pending">⏳ Pending</span>}
-            {t.approvalStatus === 'Rejected' && <span className="badge badge-rejected">✕ Rejected</span>}
+            {t.approvalStatus === 'Pending' && !(t.workflowSteps?.length > 0) && <span className="badge badge-pending"><Icon name="status-pending" /> Pending</span>}
+            {t.approvalStatus === 'Rejected' && <span className="badge badge-rejected"><Icon name="status-negative" /> Rejected</span>}
             <span className="badge">{t.category}</span>
           </div>
           {canEditTemplates && (
@@ -328,43 +330,46 @@ export default function TemplatesPage() {
 
         {t.workflowApprovals?.length > 0 && (
           <p className="template-approved-by" title="Who approved this template, and when">
-            ✅ Approved by{' '}
+            <><Icon name="status-positive" /> Approved by{' '}
             {t.workflowApprovals.map((a) =>
               `@${a.approvedByUsername} (${new Date(a.approvedAtUtc).toLocaleDateString()}${t.workflowApprovals.length > 1 ? `, ${a.stepName}` : ''})`
-            ).join(' · ')}
+            ).join(' · ')}</>
           </p>
         )}
 
         {asks.length > 0 && (
-          <p className="template-needs">✍ You'll be asked for: <strong>{asks.join(', ')}</strong></p>
+          <p className="template-needs"><Icon name="edit" /> You'll be asked for: <strong>{asks.join(', ')}</strong></p>
         )}
 
         {canEditTemplates && (
           <div className="template-meta-row">
             {t.tags.length > 0 && <div className="tag-list">{t.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>}
             <span className="visibility-chip" title={isShared ? `Shared with: ${t.sharedWithUsernames.join(', ')}` : 'Visible to everyone'}>
-              {isShared ? `🔒 ${t.sharedWithUsernames.length} people` : '🌐 Everyone'}
+              {isShared ? <><Icon name="lock-private" /> {t.sharedWithUsernames.length} people</> : <><Icon name="globe" /> Everyone</>}
             </span>
           </div>
         )}
 
-        <CloudscapeButton className="template-run-button" onClick={() => handleRunClick(t)} disabled={result?.loading}>
+        <CloudscapeButton className="template-run-button" iconName="play" onClick={() => handleRunClick(t)} disabled={result?.loading}>
           {result?.loading && !hasResult
             ? <><span className="spinner spinner-small spinner-on-dark" /> Running…</>
-            : hasResult ? '↻ Run again' : '▶ Run report'}
+            : hasResult ? 'Run again' : 'Run report'}
         </CloudscapeButton>
 
         {(canEditTemplates || t.ownerUsername !== username) && (
-          <div className="template-actions template-secondary-actions">
+          <div className="template-management">
+            <span className="template-management-label">Manage report</span>
+            <div className="template-actions template-secondary-actions">
             {canEditTemplates && (
-              <CloudscapeButton className="icon-text-button" onClick={() => setSqlViewTemplate(t)} title="See the query behind this report">🔍 View query</CloudscapeButton>
+              <CloudscapeButton className="icon-text-button" iconName="search" onClick={() => setSqlViewTemplate(t)} title="See the query behind this report">View query</CloudscapeButton>
             )}
             {canEditTemplates && (
-              <CloudscapeButton className="icon-text-button" onClick={() => setEditingTemplate(t)} title="Edit this template">✎ Edit</CloudscapeButton>
+              <CloudscapeButton className="icon-text-button" iconName="edit" onClick={() => setEditingTemplate(t)} title="Edit this template">Edit</CloudscapeButton>
             )}
             {t.ownerUsername !== username && (
-              <CloudscapeButton className="icon-text-button" onClick={() => handleHide(t.id)} title="Hide this from your Templates list only">🙈 Hide from my list</CloudscapeButton>
+              <CloudscapeButton className="icon-text-button" iconName="view-full" onClick={() => handleHide(t.id)} title="Hide this from your Templates list only">Hide from my list</CloudscapeButton>
             )}
+            </div>
           </div>
         )}
 
@@ -408,7 +413,7 @@ export default function TemplatesPage() {
 
       <div className="favorites-page">
         <div className="template-hero">
-          <h2>Templates</h2>
+          <h2 className="page-title"><Icon name="folder-open" /> Templates</h2>
           <p className="muted">
             Ready-made reports. Find the one you need, press <strong>Run report</strong>, and read the results - no technical knowledge needed.
             {canEditTemplates && ' You can save any query as a template from the Query page.'}
@@ -417,7 +422,7 @@ export default function TemplatesPage() {
 
         {isAdmin && pendingTemplates.length > 0 && (
           <div className="pending-review-panel">
-            <h4>⏳ Awaiting your approval ({pendingTemplates.length})</h4>
+            <h4><Icon name="status-pending" /> Awaiting your approval ({pendingTemplates.length})</h4>
             <ul className="favorite-list">
               {pendingTemplates.map((t) => (
                 <li key={t.id} className="favorite-card">
@@ -437,7 +442,7 @@ export default function TemplatesPage() {
         )}
 
         <div className="tpl-search">
-          <span className="tpl-search-icon" aria-hidden="true">🔍</span>
+          <span className="tpl-search-icon" aria-hidden="true"><Icon name="search" /></span>
           <CloudscapeInput
             type="search"
             value={searchInput}

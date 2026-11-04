@@ -20,6 +20,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState([])
   const [groups, setGroups] = useState([])
   const [selectedGroup, setSelectedGroup] = useState('')
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -56,7 +57,12 @@ export default function UsersPage() {
     return map
   }, [users])
 
-  const visibleUsers = selectedGroup ? (usersByGroup[selectedGroup] || []) : users
+  const visibleUsers = (selectedGroup ? (usersByGroup[selectedGroup] || []) : users)
+    .filter((user) => {
+      const needle = search.trim().toLowerCase()
+      return !needle || [user.username, user.displayName, user.email, user.role, ...(user.groups || [])]
+        .some((value) => value?.toLowerCase().includes(needle))
+    })
 
   async function handleCreate(e) {
     e.preventDefault()
@@ -133,18 +139,26 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="connections-page">
-      <h2>Users</h2>
-      <p className="muted">
+    <div className="connections-page users-page">
+      <header className="users-page-header">
+        <div>
+          <h2>Users</h2>
+          <p className="muted">
         Control who can log in, what role they have, and which group they belong to.
         Per-screen visibility is set separately on the Permissions page.
-      </p>
+          </p>
+        </div>
+        <span className="users-total">{users.length} {users.length === 1 ? 'user' : 'users'}</span>
+      </header>
 
       {error && <div className="error-banner">{error}</div>}
 
       <div className="connections-layout">
-        <form className="connection-form" onSubmit={handleCreate}>
-          <h3>New user</h3>
+        <form className="connection-form users-create-form" onSubmit={handleCreate}>
+          <div>
+            <h3>Create user</h3>
+            <p className="muted users-section-hint">Add an account and choose its starting role.</p>
+          </div>
           <label>
             Username
             <CloudscapeInput value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} required />
@@ -182,7 +196,7 @@ export default function UsersPage() {
 
         <div className="users-list-layout">
           <aside className="category-sidebar">
-            <h4>Groups</h4>
+          <h4>Filter by group</h4>
             <ul>
               <li>
                 <CloudscapeButton className={selectedGroup === '' ? 'category-item active' : 'category-item'} onClick={() => setSelectedGroup('')}>
@@ -201,34 +215,61 @@ export default function UsersPage() {
             </ul>
           </aside>
 
-          <div className="connection-list">
-            <h3>Users{selectedGroup ? ` — ${selectedGroup}` : ''}</h3>
-            <ul className="favorite-list">
+          <div className="connection-list users-results">
+            <div className="users-list-header">
+              <div>
+                <h3>{selectedGroup ? selectedGroup : 'All users'}</h3>
+                <p className="muted users-section-hint">{visibleUsers.length} matching {visibleUsers.length === 1 ? 'account' : 'accounts'}</p>
+              </div>
+              <CloudscapeInput
+                type="search"
+                className="users-search"
+                placeholder="Search users, roles, or groups"
+                aria-label="Search users"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <ul className="favorite-list users-list">
               {visibleUsers.map((u) => (
-                <li key={u.username} className="favorite-card">
-                  <div className="favorite-card-header">
-                    <strong>
-                      {u.displayName ? `${u.displayName} (${u.username})` : u.username}
-                      {u.username === myUsername ? ' — you' : ''}
-                    </strong>
-                    {(u.groups || []).map((g) => <span key={g} className="badge badge-muted">{g}</span>)}
+                <li key={u.username} className="favorite-card user-card">
+                  <div className="user-card-header">
+                    <div className="user-identity">
+                      <strong>{u.displayName || u.username}</strong>
+                      <span className="muted">@{u.username}{u.username === myUsername ? ' · you' : ''}</span>
+                      {u.email && <span className="muted">{u.email}</span>}
+                    </div>
+                    <span className={u.role === 'Admin' ? 'badge user-role-badge' : 'badge badge-muted user-role-badge'}>{u.role}</span>
                   </div>
-                  {u.email && <p className="muted connection-detail">{u.email}</p>}
-                  <p className="muted">{new Date(u.createdAtUtc).toLocaleDateString()}</p>
+                  <p className="user-role-description">{ROLE_DESCRIPTIONS[u.role]}</p>
+                  <div className="user-card-meta">
+                    <span className="muted">Created {new Date(u.createdAtUtc).toLocaleDateString()}</span>
+                    <div className="user-groups">
+                      <span className="muted">Groups:</span>
+                      {(u.groups || []).length
+                        ? u.groups.map((g) => <span key={g} className="badge badge-muted">{g}</span>)
+                        : <span className="muted">None</span>}
+                    </div>
+                  </div>
 
-                  <div className="form-row" style={{ marginTop: 8 }}>
-                    <CloudscapeSelect value={u.role} onChange={(e) => handleRoleChange(u.username, e.target.value)}
-                            disabled={u.username === myUsername}>
-                      <option value="Viewer">Viewer</option>
-                      <option value="Editor">Editor</option>
-                      <option value="Admin">Admin</option>
-                    </CloudscapeSelect>
-                    <CloudscapeButton className="secondary" onClick={() => startEdit(u)}>Edit profile</CloudscapeButton>
-                    <CloudscapeButton className="secondary" onClick={() => startPasswordEdit(u.username)}>Change password</CloudscapeButton>
-                    <CloudscapeButton className="secondary danger" onClick={() => handleDelete(u.username)}
-                            disabled={u.username === myUsername}>
-                      Delete
-                    </CloudscapeButton>
+                  <div className="user-card-actions">
+                    <label className="user-role-control">
+                      <span>Role</span>
+                      <CloudscapeSelect value={u.role} onChange={(e) => handleRoleChange(u.username, e.target.value)}
+                        disabled={u.username === myUsername} aria-label={`Role for ${u.username}`}>
+                        <option value="Viewer">Viewer</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Admin">Admin</option>
+                      </CloudscapeSelect>
+                    </label>
+                    <div className="user-action-buttons">
+                      <CloudscapeButton className="secondary" onClick={() => startEdit(u)}>Edit profile</CloudscapeButton>
+                      <CloudscapeButton className="secondary" onClick={() => startPasswordEdit(u.username)}>Change password</CloudscapeButton>
+                      <CloudscapeButton className="secondary danger" onClick={() => handleDelete(u.username)}
+                        disabled={u.username === myUsername}>
+                        Delete
+                      </CloudscapeButton>
+                    </div>
                   </div>
 
                   {editingUsername === u.username && (
@@ -267,6 +308,9 @@ export default function UsersPage() {
                 </li>
               ))}
             </ul>
+            {visibleUsers.length === 0 && (
+              <p className="muted users-empty">{users.length === 0 ? 'No users have been created yet.' : 'No users match these filters.'}</p>
+            )}
           </div>
         </div>
       </div>

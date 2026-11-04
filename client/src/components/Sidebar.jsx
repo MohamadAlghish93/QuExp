@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '@cloudscape-design/components/button'
 import SideNavigation from '@cloudscape-design/components/side-navigation'
+import Icon from '@cloudscape-design/components/icon'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { NAV_CATALOG, ADMIN_NAV_CATALOG } from '../constants/navItems.js'
 
@@ -17,6 +18,7 @@ export default function Sidebar({ pinnedKeys, onTogglePin, collapsed }) {
       type: 'link',
       text: item.label,
       href: item.to,
+      icon: <Icon name={item.iconName} />,
       info: (
         <Button
           variant="icon"

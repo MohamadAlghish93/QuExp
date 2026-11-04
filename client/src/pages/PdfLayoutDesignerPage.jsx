@@ -2,6 +2,7 @@ import CloudscapeSelect from '../components/CloudscapeSelect.jsx'
 import CloudscapeInput from '../components/CloudscapeInput.jsx'
 import CloudscapeTextarea from '../components/CloudscapeTextarea.jsx'
 import CloudscapeButton from '../components/CloudscapeButton.jsx'
+import Icon from '@cloudscape-design/components/icon'
 import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -325,7 +326,7 @@ export default function PdfLayoutDesignerPage() {
 
   return (
     <div className="pdfd-page">
-      <h2>PDF layout designer</h2>
+      <h2 className="page-title"><Icon name="file" /> PDF layout designer</h2>
       <p className="muted">
         Choose a template, then drag its columns onto the page to place them. Add a <strong>table</strong> to print the rows of a
         related query (one main row → many related rows, e.g. an order and its lines).
@@ -351,13 +352,13 @@ export default function PdfLayoutDesignerPage() {
                   {layouts.map((l) => (
                     <li key={l.id}>
                       <CloudscapeButton className={`pdfd-list-button${l.id === layoutId ? ' active' : ''}`} onClick={() => loadLayoutIntoForm(l)}>
-                        <span className="pdfd-ellipsis">{l.name}</span>{l.hasBackgroundPdf && <span title="Has a background PDF">🖼️</span>}
+                        <span className="pdfd-ellipsis">{l.name}</span>{l.hasBackgroundPdf && <span className="pdfd-background-indicator" title="Has a background PDF"><Icon name="file" /></span>}
                       </CloudscapeButton>
                     </li>
                   ))}
                 </ul>
               )}
-              <CloudscapeButton className="secondary pdfd-full" onClick={resetLayoutForm}>+ New layout</CloudscapeButton>
+              <CloudscapeButton className="secondary pdfd-full" iconName="add-plus" onClick={resetLayoutForm}>New layout</CloudscapeButton>
             </section>
 
             <section className="pdfd-card">
@@ -383,12 +384,12 @@ export default function PdfLayoutDesignerPage() {
                   <li key={t._uid}>
                     <CloudscapeButton className={`pdfd-list-button${selection?.kind === 'table' && selection.index === i ? ' active' : ''}`}
                             onClick={() => setSelection({ kind: 'table', index: i })}>
-                      <span className="pdfd-ellipsis">▦ {t.title || `Table ${i + 1}`}</span>
+                      <span className="pdfd-ellipsis"><Icon name="grid-view" /> {t.title || `Table ${i + 1}`}</span>
                     </CloudscapeButton>
                   </li>
                 ))}
               </ul>
-              <CloudscapeButton className="secondary pdfd-full" onClick={addTable}>+ Add table</CloudscapeButton>
+              <CloudscapeButton className="secondary pdfd-full" iconName="add-plus" onClick={addTable}>Add table</CloudscapeButton>
             </section>
           </aside>
 
@@ -407,17 +408,17 @@ export default function PdfLayoutDesignerPage() {
                 </CloudscapeSelect>
               </div>
               <div className="pdfd-actions">
-                <CloudscapeButton onClick={handleSaveLayout} disabled={saving}>{saving ? 'Saving…' : '💾 Save'}</CloudscapeButton>
-                <CloudscapeButton className="secondary" onClick={handlePreview} disabled={previewing}>{previewing ? 'Generating…' : '👁 Preview PDF'}</CloudscapeButton>
-                {layoutId && <CloudscapeButton className="secondary danger" onClick={handleDeleteLayout}>🗑 Delete</CloudscapeButton>}
+                <CloudscapeButton iconName="check" onClick={handleSaveLayout} disabled={saving}>{saving ? 'Saving…' : 'Save'}</CloudscapeButton>
+                <CloudscapeButton className="secondary" iconName="view-full" onClick={handlePreview} disabled={previewing}>{previewing ? 'Generating…' : 'Preview PDF'}</CloudscapeButton>
+                {layoutId && <CloudscapeButton className="secondary danger" iconName="remove" onClick={handleDeleteLayout}>Delete</CloudscapeButton>}
               </div>
               {message && <p className="test-ok pdfd-message">{message}</p>}
 
               {layoutId && (
                 <div className="pdfd-background">
                   <input ref={backgroundFileInputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleBackgroundFileSelected} />
-                  <CloudscapeButton className="secondary" onClick={() => backgroundFileInputRef.current?.click()} disabled={uploadingBackground}>
-                    {uploadingBackground ? 'Uploading…' : hasBackgroundPdf ? '📤 Replace background PDF' : '📤 Upload background PDF'}
+                  <CloudscapeButton className="secondary" iconName="upload" onClick={() => backgroundFileInputRef.current?.click()} disabled={uploadingBackground}>
+                    {uploadingBackground ? 'Uploading…' : hasBackgroundPdf ? 'Replace background PDF' : 'Upload background PDF'}
                   </CloudscapeButton>
                   {hasBackgroundPdf && (
                     <>

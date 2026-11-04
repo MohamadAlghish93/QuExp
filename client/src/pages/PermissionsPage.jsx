@@ -2,7 +2,7 @@ import CloudscapeButton from '../components/CloudscapeButton.jsx'
 import Checkbox from '@cloudscape-design/components/checkbox'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client.js'
-import { SCREENS, RESTRICTABLE_SCREENS, ALWAYS_VISIBLE_SCREEN_KEYS } from '../constants/screens.js'
+import { SCREENS, RESTRICTABLE_SCREENS } from '../constants/screens.js'
 import ScreenTransferList from '../components/ScreenTransferList.jsx'
 
 // Dynamic, per-user screen visibility - separate from the fixed Viewer/Editor/Admin
@@ -55,42 +55,47 @@ export default function PermissionsPage() {
   }
 
   return (
-    <div className="connections-page">
-      <h2>Permissions</h2>
-      <p className="muted">
-        Choose which screens appear in each user's top navigation. This is independent of
-        their Role (set on the Users page) — Role controls what they're allowed to do,
-        this controls what they even see. Admins always see every screen regardless of
-        this setting, so they can't lock themselves out of this page.
-      </p>
-      <p className="muted">
-        {SCREENS.filter((s) => s.alwaysVisible).map((s) => s.label).join(' and ')} are always
-        visible to every user by default and aren't listed below — everyone needs at least
-        those to use the app at all.
-      </p>
+    <div className="connections-page permissions-page">
+      <header className="permissions-header">
+        <div>
+          <h2>Permissions</h2>
+          <p className="muted">
+            Manage which areas appear in each user's navigation. This setting controls visibility only;
+            a user's Viewer, Editor, or Admin role determines what actions they can perform.
+          </p>
+        </div>
+      </header>
 
       {error && <div className="error-banner">{error}</div>}
 
       <div className="permissions-layout">
         <div className="connection-list">
-          <h3>Users</h3>
-          <ul className="favorite-list">
+          <div className="permissions-list-heading">
+            <h3>Select a user</h3>
+            <span className="muted">{users.length}</span>
+          </div>
+          <p className="muted permissions-help">Choose an account to review its navigation access.</p>
+          <ul className="favorite-list permissions-user-list">
             {users.map((u) => (
-              <li key={u.username}
-                  className={u.username === selectedUsername ? 'favorite-card permission-user-active' : 'favorite-card'}
+              <li key={u.username}>
+                <CloudscapeButton
+                  className={u.username === selectedUsername ? 'permission-user-card permission-user-active' : 'permission-user-card'}
                   onClick={() => selectUser(u)}
-                  style={{ cursor: 'pointer' }}>
-                <div className="favorite-card-header">
-                  <strong>{u.username}</strong>
+                  aria-pressed={u.username === selectedUsername}
+                >
+                  <span className="permission-user-identity">
+                    <strong>{u.displayName || u.username}</strong>
+                    <span className="muted">@{u.username}</span>
+                  </span>
                   <span className={u.role === 'Admin' ? 'badge' : 'badge badge-muted'}>{u.role}</span>
-                </div>
-                <p className="muted">
-                  {u.role === 'Admin'
-                    ? 'Always sees everything'
-                    : (u.allowedScreens || []).length === 0
-                      ? 'All screens (default)'
-                      : `${u.allowedScreens.length} screen(s) visible`}
-                </p>
+                  <span className="permission-user-summary">
+                    {u.role === 'Admin'
+                      ? 'Always sees every screen'
+                      : (u.allowedScreens || []).length === 0
+                        ? 'All restrictable screens'
+                        : `${u.allowedScreens.length} additional screen(s)`}
+                  </span>
+                </CloudscapeButton>
               </li>
             ))}
           </ul>
@@ -98,28 +103,50 @@ export default function PermissionsPage() {
 
         <div className="connection-form">
           {!selectedUser ? (
-            <p className="muted">Select a user.</p>
+            <div className="permissions-empty">
+              <h3>Select a user</h3>
+              <p className="muted">Choose an account to manage its navigation access.</p>
+            </div>
           ) : selectedUser.role === 'Admin' ? (
-            <p className="muted">
-              {selectedUser.username} is an Admin and always sees every screen. Change their
-              role on the Users page first if you want to restrict what they see.
-            </p>
+            <div className="permissions-admin-note">
+              <h3>{selectedUser.displayName || selectedUser.username}</h3>
+              <span className="badge">Admin</span>
+              <p className="muted">
+                Admin accounts always see every screen, regardless of navigation settings. To restrict
+                this account, change its role on the Users page first.
+              </p>
+            </div>
           ) : (
             <>
-              <h3>Screens for {selectedUsername}</h3>
-
-              <Checkbox checked={showAll} onChange={({ detail }) => setShowAll(detail.checked)}>
-                Show all screens (default)
-              </Checkbox>
+              <div className="permissions-detail-heading">
+                <div>
+                  <h3>Navigation access</h3>
+                  <p className="muted">@{selectedUsername} · {selectedUser.role}</p>
+                </div>
+                <span className="badge badge-muted">{showAll ? 'Default' : `${assignedKeys.length} selected`}</span>
+              </div>
+              <p className="muted permissions-help">
+                Select which additional pages this user can see. Core pages remain available to everyone.
+              </p>
+              <div className="permissions-default-option">
+                <Checkbox checked={showAll} onChange={({ detail }) => setShowAll(detail.checked)}>
+                  Show all pages (recommended)
+                </Checkbox>
+                <span className="muted">New pages are included automatically when this is selected.</span>
+              </div>
 
               {!showAll && (
                 <ScreenTransferList allScreens={RESTRICTABLE_SCREENS} assignedKeys={assignedKeys} onChange={setAssignedKeys} />
               )}
+              <div className="permissions-always-visible">
+                <strong>Always available</strong>
+                <span>{SCREENS.filter((s) => s.alwaysVisible).map((s) => s.label).join(' · ')}</span>
+              </div>
 
               {message && <p className="test-ok">{message}</p>}
 
               <div className="modal-actions">
-                <CloudscapeButton onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</CloudscapeButton>
+                <CloudscapeButton iconName="check" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</CloudscapeButton>
               </div>
             </>
           )}

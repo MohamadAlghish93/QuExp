@@ -48,6 +48,7 @@ function Header({ pinnedKeys }) {
           ...pinnedItems.map((item) => ({
             type: 'button',
             text: item.label,
+            iconName: item.iconName,
             href: item.to,
             onFollow: (event) => {
               event.preventDefault()

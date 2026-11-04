@@ -7,6 +7,7 @@ namespace QueryExplorer.Domain.Enums;
 public enum DatabaseProviderType
 {
     SqlServer,
-    Oracle
+    Oracle,
+    Sqlite
     // PostgreSql, MySql, etc. can be added later without touching existing providers.
 }

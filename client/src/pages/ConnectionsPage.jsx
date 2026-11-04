@@ -19,7 +19,7 @@ const EMPTY_FORM = {
   allowedUsernames: [], // empty = visible to everyone
 }
 
-const DEFAULT_PORTS = { SqlServer: 1433, Oracle: 1521 }
+const DEFAULT_PORTS = { SqlServer: 1433, Oracle: 1521, Sqlite: 0 }
 
 export default function ConnectionsPage() {
   const { canEditConnections } = useAuth()
@@ -48,6 +48,10 @@ export default function ConnectionsPage() {
       // unless the user already typed a custom one.
       if (field === 'providerType' && (f.port === DEFAULT_PORTS[f.providerType] || !f.port)) {
         next.port = DEFAULT_PORTS[value]
+      }
+      if (field === 'providerType') {
+        if (value === 'Sqlite') next.host = ''
+        else if (f.providerType === 'Sqlite' && !f.host) next.host = 'localhost'
       }
       return next
     })
@@ -130,40 +134,54 @@ export default function ConnectionsPage() {
             <CloudscapeSelect value={form.providerType} onChange={(e) => update('providerType', e.target.value)}>
               <option value="SqlServer">SQL Server</option>
               <option value="Oracle">Oracle</option>
+              <option value="Sqlite">SQLite</option>
             </CloudscapeSelect>
           </label>
 
-          <div className="form-row">
-            <label className="grow">
-              Host
-              <CloudscapeInput value={form.host} onChange={(e) => update('host', e.target.value)} required />
+          {form.providerType === 'Sqlite' ? (
+            <label>
+              Database file path
+              <CloudscapeInput value={form.database} onChange={(e) => update('database', e.target.value)} required
+                     placeholder="/path/on/server/to/database.sqlite" />
+              <p className="field-hint hint-existing">
+                Use an existing database file accessible to the QueryExplorer server. SQLite connections are read-only.
+              </p>
             </label>
-            <label className="port-field">
-              Port
-              <CloudscapeInput type="number" value={form.port} onChange={(e) => update('port', e.target.value)} />
-            </label>
-          </div>
+          ) : (
+            <>
+              <div className="form-row">
+                <label className="grow">
+                  Host
+                  <CloudscapeInput value={form.host} onChange={(e) => update('host', e.target.value)} required />
+                </label>
+                <label className="port-field">
+                  Port
+                  <CloudscapeInput type="number" value={form.port} onChange={(e) => update('port', e.target.value)} />
+                </label>
+              </div>
 
-          <label>
-            {form.providerType === 'Oracle' ? 'Service name / SID' : 'Database'}
-            <CloudscapeInput value={form.database} onChange={(e) => update('database', e.target.value)}
-                   placeholder={form.providerType === 'Oracle' ? 'XEPDB1' : 'ReportingDb'} />
-          </label>
+              <label>
+                {form.providerType === 'Oracle' ? 'Service name / SID' : 'Database'}
+                <CloudscapeInput value={form.database} onChange={(e) => update('database', e.target.value)}
+                       placeholder={form.providerType === 'Oracle' ? 'XEPDB1' : 'ReportingDb'} />
+              </label>
 
-          <label>
-            Username
-            <CloudscapeInput value={form.username} onChange={(e) => update('username', e.target.value)} autoComplete="off" />
-          </label>
+              <label>
+                Username
+                <CloudscapeInput value={form.username} onChange={(e) => update('username', e.target.value)} autoComplete="off" />
+              </label>
 
-          <label>
-            Password
-            <CloudscapeInput type="password" value={form.password} onChange={(e) => update('password', e.target.value)}
-                   autoComplete="new-password"
-                   placeholder={editing && form.hasPassword ? 'Leave blank to keep current password' : ''} />
-          </label>
-          <p className="field-hint hint-existing">
-            Stored encrypted (AES-256) in connections.json and never sent back to the browser.
-          </p>
+              <label>
+                Password
+                <CloudscapeInput type="password" value={form.password} onChange={(e) => update('password', e.target.value)}
+                       autoComplete="new-password"
+                       placeholder={editing && form.hasPassword ? 'Leave blank to keep current password' : ''} />
+              </label>
+              <p className="field-hint hint-existing">
+                Stored encrypted (AES-256) in connections.json and never sent back to the browser.
+              </p>
+            </>
+          )}
 
           <label>
             Extra options (optional)
@@ -192,7 +210,8 @@ export default function ConnectionsPage() {
 
           <div className="modal-actions">
             {editing && <CloudscapeButton type="button" className="secondary" onClick={resetForm}>Cancel</CloudscapeButton>}
-            <CloudscapeButton type="button" className="secondary" onClick={handleTest} disabled={testing || !form.host}>
+            <CloudscapeButton type="button" className="secondary" onClick={handleTest}
+                              disabled={testing || !(form.providerType === 'Sqlite' ? form.database : form.host)}>
               {testing ? 'Testing…' : 'Test connection'}
             </CloudscapeButton>
             <CloudscapeButton type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</CloudscapeButton>
@@ -215,8 +234,9 @@ export default function ConnectionsPage() {
                     <span className="badge">{c.providerType}</span>
                   </div>
                   <p className="muted connection-detail">
-                    {c.username ? `${c.username}@` : ''}{c.host}{c.port ? `:${c.port}` : ''}
-                    {c.database ? `/${c.database}` : ''}
+                    {c.providerType === 'Sqlite'
+                      ? c.database
+                      : `${c.username ? `${c.username}@` : ''}${c.host}${c.port ? `:${c.port}` : ''}${c.database ? `/${c.database}` : ''}`}
                     {c.hasPassword ? ' · password saved' : ' · no password'}
                   </p>
                   {canEditConnections && (

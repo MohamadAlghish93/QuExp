@@ -15,6 +15,7 @@ var dataDirectory = Path.Combine(AppContext.BaseDirectory, "data");
 // implement IQueryProvider in Infrastructure/Providers and add one line here.
 builder.Services.AddSingleton<QueryExplorer.Application.Interfaces.IQueryProvider, SqlServerQueryProvider>();
 builder.Services.AddSingleton<QueryExplorer.Application.Interfaces.IQueryProvider, OracleQueryProvider>();
+builder.Services.AddSingleton<QueryExplorer.Application.Interfaces.IQueryProvider, SqliteQueryProvider>();
 builder.Services.AddSingleton<IQueryProviderFactory, QueryProviderFactory>();
 
 builder.Services.AddSingleton<IFavoriteQueryRepository>(_ => new SqliteFavoriteQueryRepository(dataDirectory));

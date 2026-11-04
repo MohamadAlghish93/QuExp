@@ -28,7 +28,8 @@ export default function ScreenTransferList({ allScreens, assignedKeys, onChange 
   return (
     <div className="transfer-list">
       <div className="transfer-column">
-        <label className="transfer-label">Available screens</label>
+        <label className="transfer-label">Available pages ({available.length})</label>
+        <span className="muted transfer-help">Select one or more pages to grant access.</span>
         <select multiple size={8} value={selectedAvailable}
                 onChange={(e) => handleMultiSelect(e, setSelectedAvailable)}>
           {available.map((s) => (
@@ -40,14 +41,14 @@ export default function ScreenTransferList({ allScreens, assignedKeys, onChange 
       </div>
 
       <div className="transfer-controls">
-        <CloudscapeButton type="button" onClick={() => moveToAssigned(selectedAvailable)} disabled={!selectedAvailable.length} title="Add selected">→</CloudscapeButton>
-        <CloudscapeButton type="button" onClick={() => moveToAssigned(available.map((s) => s.key))} disabled={!available.length} title="Add all">≫</CloudscapeButton>
-        <CloudscapeButton type="button" onClick={() => moveToAvailable(assigned.map((s) => s.key))} disabled={!assigned.length} title="Remove all">≪</CloudscapeButton>
-        <CloudscapeButton type="button" onClick={() => moveToAvailable(selectedAssigned)} disabled={!selectedAssigned.length} title="Remove selected">←</CloudscapeButton>
+        <CloudscapeButton type="button" iconName="angle-right" aria-label="Grant selected pages" onClick={() => moveToAssigned(selectedAvailable)} disabled={!selectedAvailable.length} title="Grant selected pages" />
+        <CloudscapeButton type="button" iconName="angle-right-double" aria-label="Grant all pages" onClick={() => moveToAssigned(available.map((s) => s.key))} disabled={!available.length} title="Grant all pages" />
+        <CloudscapeButton type="button" iconName="angle-left-double" aria-label="Remove all page access" onClick={() => moveToAvailable(assigned.map((s) => s.key))} disabled={!assigned.length} title="Remove all page access" />
+        <CloudscapeButton type="button" iconName="angle-left" aria-label="Remove selected page access" onClick={() => moveToAvailable(selectedAssigned)} disabled={!selectedAssigned.length} title="Remove selected page access" />
       </div>
 
       <div className="transfer-column">
-        <label className="transfer-label">Visible to this user</label>
+        <label className="transfer-label">Visible pages ({assigned.length})</label>
         <select multiple size={8} value={selectedAssigned}
                 onChange={(e) => handleMultiSelect(e, setSelectedAssigned)}>
           {assigned.map((s) => (

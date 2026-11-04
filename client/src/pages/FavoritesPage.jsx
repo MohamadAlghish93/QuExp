@@ -8,6 +8,7 @@ import BusyOverlay from '../components/BusyOverlay.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 import CategorySidebar from '../components/CategorySidebar.jsx'
 import AssignFavoriteModal from '../components/AssignFavoriteModal.jsx'
+import Icon from '@cloudscape-design/components/icon'
 
 export default function FavoritesPage() {
   const { isAdmin } = useAuth()
@@ -233,12 +234,13 @@ export default function FavoritesPage() {
       />
 
       <div className="favorites-page">
+        <h2 className="page-title"><Icon name="star-filled" /> Favorites</h2>
         {isAdmin && allTags.length > 0 && (
           <div className="tag-manager">
             <span className="muted">Manage tags:</span>
             {allTags.map((t) => (
-              <CloudscapeButton key={t} type="button" className="tag tag-suggestion" onClick={() => handleRenameTag(t)} title={`Rename "${t}"`}>
-                {t} ✎
+              <CloudscapeButton key={t} type="button" className="tag tag-suggestion" iconName="edit" onClick={() => handleRenameTag(t)} title={`Rename "${t}"`}>
+                {t}
               </CloudscapeButton>
             ))}
           </div>
@@ -263,7 +265,7 @@ export default function FavoritesPage() {
                       <div className="assignment-item-actions">
                         <CloudscapeButton className="secondary" onClick={() => handleRunAssignment(a)}>Run</CloudscapeButton>
                         <CloudscapeButton className="link-button" onClick={() => handleCompleteAssignment(a.id)} disabled={completingId !== null}>
-                          {completingId === a.id ? '⏳ marking done…' : 'mark done'}
+                          {completingId === a.id ? <><span className="spinner spinner-small" /> marking done…</> : 'mark done'}
                         </CloudscapeButton>
                       </div>
                     </li>
@@ -380,7 +382,7 @@ export default function FavoritesPage() {
                 <div className="favorite-card-actions">
                   <CloudscapeButton onClick={() => handleUse(fav)}>Run again</CloudscapeButton>
                   <CloudscapeButton className="secondary" onClick={() => setAssigningFavorite(fav)}>@ Assign</CloudscapeButton>
-                  <CloudscapeButton className="secondary" onClick={() => handleCreateAlert(fav)}>🔔 Create alert</CloudscapeButton>
+                  <CloudscapeButton className="secondary" iconName="notification" onClick={() => handleCreateAlert(fav)}>Create alert</CloudscapeButton>
                   <CloudscapeButton className="secondary danger" onClick={() => handleDelete(fav.id)}>Delete</CloudscapeButton>
                 </div>
               </li>

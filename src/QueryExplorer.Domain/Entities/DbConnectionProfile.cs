@@ -18,7 +18,7 @@ public class DbConnectionProfile
     public string Host { get; set; } = string.Empty;
     public int Port { get; set; }
 
-    /// <summary>Database name for SQL Server; service name / SID for Oracle.</summary>
+    /// <summary>Database name for SQL Server, service name / SID for Oracle, or file path for SQLite.</summary>
     public string Database { get; set; } = string.Empty;
 
     public string Username { get; set; } = string.Empty;
